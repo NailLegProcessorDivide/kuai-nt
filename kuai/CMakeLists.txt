@@ -89,14 +89,14 @@ add_library(${PROJECT_NAME}
     vendor/stb_image/stb_image.h
     vendor/stb_image/stb_image.cpp
 )
-
+find_package(OpenGL REQUIRED)
 set(MY_LIBS
     glfw
     glad
     assimp
     sndfile
     OpenAL::OpenAL
-    opengl32
+    GL
 )
 
 if (WIN32)
