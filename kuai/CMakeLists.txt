@@ -19,8 +19,6 @@ add_library(${PROJECT_NAME}
     src/kuai/Components/Entity.h
     src/kuai/Components/EntityComponentSystem.h
     src/kuai/Components/EntityManager.h
-    src/kuai/Components/Scene.h
-    src/kuai/Components/Scene.cpp
     src/kuai/Components/System.h
     src/kuai/Components/System.cpp
     src/kuai/Components/SystemManager.h

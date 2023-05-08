@@ -1,3 +1,4 @@
+#include "App.h"
 #include "kpch.h"
 #include "App.h"
 #include "Log.h"
@@ -8,6 +9,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#define BIND(x) std::bind(x, this, std::placeholders::_1)
+
 namespace kuai {
 
 	App* App::instance = nullptr;
@@ -17,8 +20,7 @@ namespace kuai {
 		KU_CORE_ASSERT(!instance, "Application already exists");
 		instance = this;
 
-		window = std::unique_ptr<Window>(Window::create());
-		window->setEventCallback(std::bind(&App::onEvent, this, std::placeholders::_1));
+		addWindow(WindowProps());
 		running = true;
 
 		Renderer::init();
@@ -46,8 +48,10 @@ namespace kuai {
 						layer->update(elapsedTime);
 				}
 			}
-
-			window->update();
+			for (auto& window : windows)
+			{
+				window->update();
+			}
 		}
 
 		AudioManager::cleanup();
@@ -57,8 +61,8 @@ namespace kuai {
 	void App::onEvent(Event* e)
 	{
 		EventDispatcher dispatcher(e);
-		dispatcher.dispatch<WindowCloseEvent>(std::bind(&App::onWindowClose, this, std::placeholders::_1));
-		dispatcher.dispatch<WindowResizeEvent>(std::bind(&App::onWindowResize, this, std::placeholders::_1));
+		dispatcher.dispatch<WindowCloseEvent>(BIND(&App::onWindowClose));
+		dispatcher.dispatch<WindowResizeEvent>(BIND(&App::onWindowResize));
 
 		for (auto it = layerStack.end(); it != layerStack.begin(); ) // Start from end and go backwards through stack
 		{
@@ -73,10 +77,17 @@ namespace kuai {
 		layerStack.pushLayer(layer);
 	}
 
-	void App::pushOverlay(Layer* layer)
+	void App::addWindow(const WindowProps& props)
 	{
-		layerStack.pushOverlay(layer);
+		auto window = Window::create(props);
+		window->setEventCallback(BIND(&App::onEvent));
+		windows.push_back(std::move(window));
 	}
+
+	void App::removeWindow()
+	{
+	}
+
 
 	bool App::onWindowClose(WindowCloseEvent& e)
 	{
@@ -96,6 +107,17 @@ namespace kuai {
 		Renderer::setViewport(0, 0, e.getWidth(), e.getHeight());
 
 		return false;
+	}
+
+	Window* App::getActiveWindow() {
+		assert(windows.size() > 0);
+		for (auto& window : windows)
+		{
+			if (window->isActive()) {
+				return window.get();
+			}
+		}
+		return windows[0].get();
 	}
 
 }

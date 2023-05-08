@@ -8,7 +8,7 @@ namespace kuai {
 
 	bool Input::isKeyPressed(KeyCode keycode)
 	{
-		auto window = static_cast<GLFWwindow*>(App::get().getWindow().getNativeWindow());
+		auto window = static_cast<GLFWwindow*>(App::get().getActiveWindow()->getNativeWindow());
 		auto state = glfwGetKey(window, keycode);
 
 		return state == GLFW_PRESS || state == GLFW_REPEAT;
@@ -16,29 +16,31 @@ namespace kuai {
 
 	bool Input::isMouseBtnPressed(MouseBtnCode keycode)
 	{
-		auto window = static_cast<GLFWwindow*>(App::get().getWindow().getNativeWindow());
+		auto window = static_cast<GLFWwindow*>(App::get().getActiveWindow()->getNativeWindow());
 		auto state = glfwGetMouseButton(window, keycode);
 
 		return state == GLFW_PRESS;
 	}
 
-	std::pair<float, float> Input::getMousePos()
+	glm::vec2 Input::getMousePos()
 	{
-		auto window = static_cast<GLFWwindow*>(App::get().getWindow().getNativeWindow());
+		auto window = static_cast<GLFWwindow*>(App::get().getActiveWindow()->getNativeWindow());
 		double xpos, ypos;
+		int windx, windy;
 		glfwGetCursorPos(window, &xpos, &ypos);
+		glfwGetWindowPos(window, &windx, &windy);
 
-		return std::pair<float, float>((float)xpos, (float)ypos);
+		return glm::vec2((float)(xpos + windx), (float)(ypos + windy));
 	}
 
 	float Input::getMouseX()
 	{
-		return Input::getMousePos().first;
+		return Input::getMousePos().x;
 	}
 
 	float Input::getMouseY()
 	{
-		return Input::getMousePos().second;
+		return Input::getMousePos().y;
 	}
 }
 

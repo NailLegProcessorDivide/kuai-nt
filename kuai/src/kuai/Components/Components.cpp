@@ -12,24 +12,17 @@
 namespace kuai {
 	u32 Light::lightCount = 0;
 
-	Transform& Component::getTransform()
-	{
-		return entity->getTransform();
-	}
-
 	void Transform::updateComponents()
 	{	
-		if (hasComponent<CameraComponent>())
+		if (hasComponent<Cam>())
 		{
-			getComponent<CameraComponent>().updateViewMatrix(pos, rot);
-			getComponent<CameraComponent>().changed = true;
+			getComponent<Cam>().updateViewMatrix(pos, rot);
 		}
 
 		if (hasComponent<Light>())
 		{
-			getComponent<Light>().shadowCam.updateViewMatrix(pos, rot);
+			//getComponent<Light>().shadowCam.updateViewMatrix(pos, rot);
 			getComponent<Light>().calcLightSpaceMatrix();
-			getComponent<Light>().changed = true;
 			// Renderer::updateShadowMap(getComponent<Light>());
 		}
 
@@ -53,7 +46,7 @@ namespace kuai {
 		AudioManager::setOrientation(getTransform().getForward(), getTransform().getUp());
 	}
 
-	AudioSourceComponent::AudioSourceComponent(Entity* entity, bool stream) : Component(entity)
+	AudioSourceComponent::AudioSourceComponent(bool stream)
 	{
 		source = AudioManager::createAudioSource(stream);
 	}

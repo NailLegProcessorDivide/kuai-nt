@@ -15,15 +15,19 @@ namespace kuai {
 		std::string title;
 		uint32_t width;
 		uint32_t height;
+		uint32_t screenX;
+		uint32_t screenY;
 
 		WindowProps(const std::string& title = "Demo",
 			uint32_t width = 1024,
-			uint32_t height = 768)
-		{
-			this->title = title;
-			this->width = width;
-			this->height = height;
-		}
+			uint32_t height = 768,
+			uint32_t screenX = 200,
+			uint32_t screenY = 200) :
+			title(title),
+			width(width),
+			height(height),
+			screenX(screenX),
+			screenY(screenY) {}
 	};
 
 	/**
@@ -40,13 +44,20 @@ namespace kuai {
 
 		virtual uint32_t getWidth() const = 0;
 		virtual uint32_t getHeight() const = 0;
+		virtual void setSize(uint32_t, uint32_t) = 0;
+
+		virtual uint32_t getXPos() const = 0;
+		virtual uint32_t getYPos() const = 0;
+		virtual void setPos(uint32_t, uint32_t) = 0;
+
 
 		virtual void setEventCallback(const EventCallbackFn& callback) = 0;
 		virtual void setVSync(bool enabled) = 0;
 		virtual bool isVSync() const = 0;
 
 		virtual void* getNativeWindow() const = 0;
+		virtual bool isActive() const = 0;
 
-		static Window* create(const WindowProps& props = WindowProps());
+		static Box<Window> create(const WindowProps& props = WindowProps());
 	};
 }

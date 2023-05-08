@@ -2,6 +2,7 @@
 
 #include "KeyCodes.h"
 #include "MouseBtnCodes.h"
+#include "glm/glm.hpp"
 
 namespace kuai {
 	/** \class Input
@@ -20,7 +21,7 @@ namespace kuai {
 		*/
 		static bool isMouseBtnPressed(MouseBtnCode button);
 
-		static std::pair<float, float> getMousePos();
+		static glm::vec2 getMousePos();
 		static float getMouseX();
 		static float getMouseY();
 	};

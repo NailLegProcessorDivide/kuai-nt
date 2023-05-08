@@ -14,9 +14,9 @@ namespace kuai {
 		KU_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
 	}
 
-	Window* Window::create(const WindowProps& props)
+	Box<Window> Window::create(const WindowProps& props)
 	{
-		return new WinWindow(props);
+		return MakeBox<WinWindow>(props);
 	}
 
 	WinWindow::WinWindow(const WindowProps& props)
@@ -36,6 +36,8 @@ namespace kuai {
 		data.title = props.title;
 		data.width = props.width;
 		data.height = props.height;
+		data.screenX = props.screenX;
+		data.screenY = props.screenY;
 
 		KU_CORE_INFO("Creating window {0} ({1}, {2})", props.title, props.width, props.height);
 
@@ -68,6 +70,16 @@ namespace kuai {
 			data.height = height;
 
 			WindowResizeEvent event(width, height); 
+			data.eventCallback(&event); // Dispatch event
+		});
+
+		glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xPos, int yPos)
+		{
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			data.screenX = xPos;
+			data.screenY = yPos;
+
+			WindowResizeEvent event(xPos, yPos);
 			data.eventCallback(&event); // Dispatch event
 		});
 
@@ -140,7 +152,20 @@ namespace kuai {
 			data.eventCallback(&event);
 		});
 
+		glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focus)
+		{
+			(*(WindowData*)glfwGetWindowUserPointer(window)).isActive = focus != 0;
+		});
+
 		//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	}
+
+	void WinWindow::setSize(uint32_t x, uint32_t y) {
+		glfwSetWindowSize(window, x, y);
+	}
+
+	void WinWindow::setPos(uint32_t x, uint32_t y) {
+		glfwSetWindowPos(window, x, y);
 	}
 
 	void WinWindow::cleanup()
@@ -164,6 +189,11 @@ namespace kuai {
 	bool WinWindow::isVSync() const
 	{
 		return data.vSync;
+	}
+
+	bool WinWindow::isActive() const
+	{
+		return data.isActive;
 	}
 
 }

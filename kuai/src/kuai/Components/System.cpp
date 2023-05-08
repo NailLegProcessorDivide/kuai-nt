@@ -1,18 +1,27 @@
 #include "kpch.h"
 #include "System.h"
 
-#include "Scene.h"
+#include "Entity.h"
 
 namespace kuai {
 
+	System::System(bool acceptsSubset) : acceptsSubset(acceptsSubset) {}
+
 	void System::insertEntity(EntityID entity)
 	{
-		entities.push_back(scene->getEntityById(entity));
+		entities.push_back(MakeRc<Entity>(ECS, entity));
 	}
 
 	void System::removeEntity(EntityID entity)
 	{
-		entities.erase(std::remove(entities.begin(), entities.end(), scene->getEntityById(entity)), entities.end());
+		for (size_t i = 0; i < entities.size(); i++)
+		{
+			if (entities[i]->getId() == entity)
+			{
+				entities.erase(entities.begin() + i);
+				break;
+			}
+		}
 	}
 
 	std::vector<std::shared_ptr<Entity>>& System::getEntities()
@@ -22,6 +31,18 @@ namespace kuai {
 
 	bool System::hasEntity(EntityID entity)
 	{
-		return std::find(entities.begin(), entities.end(), scene->getEntityById(entity)) != entities.end();
+		for (size_t i = 0; i < entities.size(); i++)
+		{
+			if (entities[i]->getId() == entity)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	void System::setECS(EntityComponentSystem* ECS)
+	{
+		this->ECS = ECS;
 	}
 }

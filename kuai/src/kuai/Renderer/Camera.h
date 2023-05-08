@@ -17,37 +17,40 @@ namespace kuai {
 			Ortho
 		};
 
-		Camera(float fov, float width, float height, float zNear, float zFar) : aspect(width / height) 
+		Camera(float width, float height, float zNear, float zFar, float scale)
 		{ 
-			setPerspective(fov, zNear, zFar); 
+			setOrtho(width, height, zNear, zFar);
 			updateViewMatrix(glm::vec3(0.0f), glm::vec3(0.0f));
 		}
 
-        Camera() : Camera(1.0f, 1.0f, 1.0f, 1.0f, 10.0f) {}
+		Camera(float fov, float aspect, float zNear, float zFar)
+		{
+			setPerspective(fov, aspect, zNear, zFar);
+			updateViewMatrix(glm::vec3(0.0f), glm::vec3(0.0f));
+		}
 
-		void setPerspective(float fov, float zNear, float zFar)
+		inline glm::mat4& getViewMatrix()  { return viewMatrix; }
+		inline glm::mat4& getProjectionMatrix() { return projMatrix; }
+
+		void setPerspective(float fov, float aspect, float zNear, float zFar)
 		{
 			projectionType = ProjectionType::Perspective;
 			this->fov = glm::radians(fov);
+			this->aspect = aspect;
 			this->zNear = zNear;
 			this->zFar = zFar;
 			updateProjectionMatrix();
 		}
-		void setOrtho(float size, float zNear, float zFar)
+
+		void setOrtho(float width, float height, float zNear, float zFar)
 		{
 			projectionType = ProjectionType::Ortho;
-			this->orthoSize = size;
+			this->width = width;
+			this->height = height;
 			this->orthoNear = zNear;
 			this->orthoFar = zFar;
 			updateProjectionMatrix();
 		}
-		void setAspect(float width, float height)
-		{
-			aspect = width / height;
-		}
-
-		inline glm::mat4& getViewMatrix()  { return viewMatrix; }
-		inline glm::mat4& getProjectionMatrix() { return projectionMatrix; }
 
 		void updateViewMatrix(glm::vec3 pos, glm::vec3 rot)
         {
@@ -63,13 +66,13 @@ namespace kuai {
         {
             if (projectionType == ProjectionType::Perspective)
             {
-                projectionMatrix = glm::perspective(fov, aspect, zNear, zFar);
+                projMatrix = glm::perspective(fov, aspect, zNear, zFar);
             }
             else
             {
-                projectionMatrix = glm::ortho(
-					-orthoSize * aspect * 0.5f, orthoSize * aspect * 0.5f, 
-					-orthoSize * 0.5f, orthoSize * 0.5f,
+				projMatrix = glm::ortho(
+					-width * 0.5f, width * 0.5f, 
+					-height * 0.5f, height * 0.5f,
 					orthoNear, orthoFar
 				);
             }
@@ -78,22 +81,20 @@ namespace kuai {
 	private:
 		ProjectionType projectionType;
 
-		glm::mat4 viewMatrix;
-		glm::mat4 projectionMatrix;
-
-		float aspect;
-
 		// Perspective params
 		float fov;
+		float aspect;
 		float zNear, zFar;
 
 		// Ortho params
-		float orthoSize;
+		float width, height;
 		float orthoNear, orthoFar;
+
+		glm::mat4 viewMatrix;
+		glm::mat4 projMatrix;
+		glm::mat4 viewProjMatrix;
 
 		// Framebuffer this camera will render to; none is default framebuffer
 		Rc<Framebuffer> target = nullptr;
-
-		friend class CameraSystem;
     };
 }

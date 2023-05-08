@@ -4,6 +4,7 @@
 #include "glm/gtx/quaternion.hpp"
 
 #include "kuai/Core/Core.h"
+#include "ComponentManager.h"
 
 #include "kuai/Renderer/Mesh.h"
 #include "kuai/Renderer/Model.h"
@@ -16,35 +17,28 @@
 #include "kuai/Events/Event.h"
 
 namespace kuai {
-	// Forward Declarations
-	class Entity;
+	// Forward Declaration
 	class Transform;
 
-	/** \class Component
-	*	\brief Base class for all components
-	*/
 	class Component
 	{
 	public:
-		/// @private
-		Component(Entity* entity) : entity(entity) {}
+		Component() = default;
 
 		template<typename T>
-		bool hasComponent();
+		bool hasComponent() { return cm->hasComponent<T>(id); };
 
 		template<typename T>
-		T& getComponent();
+		T& getComponent() { return cm->getComponent<T>(id); }
 
-		Transform& getTransform();
-
-		bool changed = false;
+		Transform& getTransform() { return cm->getComponent<Transform>(id); }
 
 	private:
-		Entity* entity = nullptr;
-	};
+		ComponentManager* cm; // :(
+		EntityID id;
 
-	// Forward Declarations
-	class Camera;
+		friend ComponentManager;
+	};
 
 	/** \class Transform
 	*	\brief Describes 3D world position, rotation and scale of an object.
@@ -52,48 +46,48 @@ namespace kuai {
 	class Transform : public Component
 	{
 	public:
-		Transform(Entity* entity) : Component(entity) {}
-		Transform(Entity* entity, glm::vec3& pos) : Component(entity), pos(pos) {}
+		Transform() = default;
+		Transform(const glm::vec3& pos) : pos(pos) {}
 
-		glm::vec3 getPos() { return pos; }
-		void setPos(const glm::vec3& pos) 
-		{ 
-			this->pos = pos; 
-			updateComponents(); 
-			calcModelMatrix(); 
+		glm::vec3& getPos() { return pos; }
+		void setPos(const glm::vec3& pos)
+		{
+			this->pos = pos;
+			updateComponents();
+			calcModelMatrix();
 		}
 		void setPos(float x, float y, float z) { setPos({ x, y, z }); }
 
-		void translate(const glm::vec3& amount) 
-		{ 
-			this->pos += amount; 
-			updateComponents(); 
-			calcModelMatrix(); 
+		void translate(const glm::vec3& amount)
+		{
+			this->pos += amount;
+			updateComponents();
+			calcModelMatrix();
 		}
 		void translate(float x, float y, float z) { translate({ x, y, z }); }
 
 		glm::vec3 getRot() { return glm::degrees(rot); }
-		void setRot(const glm::vec3& rot) 
-		{ 
-			this->rot = glm::radians(rot); 
-			updateComponents(); 
-			calcModelMatrix(); 
+		void setRot(const glm::vec3& rot)
+		{
+			this->rot = glm::radians(rot);
+			updateComponents();
+			calcModelMatrix();
 		}
 		void setRot(float x, float y, float z) { setRot({ x, y, z }); }
 
-		void rotate(const glm::vec3& amount) 
-		{ 
+		void rotate(const glm::vec3& amount)
+		{
 			this->rot += glm::radians(amount);
-			updateComponents(); 
+			updateComponents();
 			calcModelMatrix();
 		}
 		void rotate(float x, float y, float z) { rotate({ x, y, z }); }
 
 		glm::vec3 getScale() { return scale; }
 		void setScale(const glm::vec3& scale)
-		{ 
-			this->scale = scale; 
-			calcModelMatrix(); 
+		{
+			this->scale = scale;
+			calcModelMatrix();
 		}
 		void setScale(float x, float y, float z) { setScale({ x, y, z }); }
 
@@ -120,23 +114,10 @@ namespace kuai {
 		glm::mat4 modelMatrix = glm::mat4(1.0f);
 	};
 
-	class Rigidbody : public Component
-	{
-	public:
-		Rigidbody(Entity* entity) : Component(entity) {};
-
-		float mass = 1.0f;
-		float drag = 0.0f;
-
-		glm::vec3 velocity = { 0.0f, 0.0f, 0.0f };
-
-		bool useGravity = false;
-	};
-
 	class Rigidbody2D : public Component
 	{
 	public:
-		Rigidbody2D(Entity* entity) : Component(entity) {};
+		Rigidbody2D() = default;
 
 		bool fixedRotation = false;
 
@@ -151,7 +132,7 @@ namespace kuai {
 	class BoxCollider2D : public Component
 	{
 	public:
-		BoxCollider2D(Entity* entity) : Component(entity) {}
+		BoxCollider2D() = default;
 
 		glm::vec2 getSize() { return size; }
 		void setSize(float x, float y) { size = glm::vec2(x, y); }
@@ -180,13 +161,13 @@ namespace kuai {
 	class MeshRenderer : public Component
 	{
 	public:
-		MeshRenderer(Entity* entity) : Component(entity) {}
-		MeshRenderer(Entity* entity, Rc<Model> model) : Component(entity), model(model) {}
-		MeshRenderer(Entity* entity, Rc<Mesh> mesh) : Component(entity), model(MakeRc<Model>(mesh)) {}
+		MeshRenderer() = default;
+		MeshRenderer(Rc<Model> model) : model(model) {}
+		MeshRenderer(Rc<Mesh> mesh) : model(MakeRc<Model>(mesh)) {}
 
 		void render()
 		{
-			
+
 		}
 
 		Rc<Model> getModel() { return model; }
@@ -197,35 +178,19 @@ namespace kuai {
 
 	private:
 		Rc<Model> model;
-		
+
 		bool shadows = true;
 	};
 
 	/** \class Camera
 	*	\brief Device through which the user views the world.
 	*/
-	class CameraComponent : public Component, public Camera
+	class Cam : public Camera, public Component
 	{
 	public:
-		CameraComponent(Entity* entity, float fov, float width, float height, float zNear, float zFar) : Component(entity), 
-			Camera(fov, width, height, zNear, zFar)
-		{
-			changed = true;
-		}
 
-		CameraComponent(Entity* entity) : Component(entity), Camera() { changed = true; }
 
 		bool isMain = false; // Indicates whether this is the main camera (i.e. the camera that renders to the window)
-	};
-
-	struct CameraChangedEvent : public Event
-	{
-		CameraChangedEvent(CameraComponent* cam) : cam(cam) {}
-
-		EVENT_CLASS_TYPE(EventType::CameraChanged);
-		EVENT_CLASS_CATEGORY(0);
-
-		CameraComponent* cam;
 	};
 
 	/** \class Light
@@ -237,38 +202,24 @@ namespace kuai {
 	class Light : public Component
 	{
 	public:
-		enum class LightType
+		Light() : lightId(lightCount++)
 		{
-			Directional = 0,
-			Point = 1,
-			Spot = 2
-		};
-
-		Light(Entity* entity) : Component(entity), lightId(lightCount++)
-		{
-			shadowCam.setAspect(1, 1);
-			shadowCam.setOrtho(20.0f, -10.0f, 10.0f);
-			shadowCam.updateViewMatrix(getTransform().getPos(), getTransform().getRot());
 			calcLightSpaceMatrix();
-			changed = true;
 		}
 
-		LightType getType() { return type; }
-		void setType(LightType type) { this->type = type; changed = true; }
-
 		glm::vec3 getCol() { return col; }
-		void setCol(const glm::vec3& col) { this->col = col; changed = true; }
+		void setCol(const glm::vec3& col) { this->col = col; }
 		void setCol(float x, float y, float z) { setCol({ x, y, z }); }
 
 		float getIntensity() { return intensity; }
-		void setIntensity(float intensity) { this->intensity = intensity; changed = true; }
+		void setIntensity(float intensity) { this->intensity = intensity; }
 
 		float getLinear() { return linear; }
 		float getQuadratic() { return quadratic; }
-		void setAttenuation(float linear, float quadratic) { this->linear = linear; this->quadratic = quadratic; changed = true; }
+		void setAttenuation(float linear, float quadratic) { this->linear = linear; this->quadratic = quadratic; }
 
 		float getAngle() { return angle; }
-		void setAngle(float angle) { this->angle = angle; changed = true; }
+		void setAngle(float angle) { this->angle = angle; }
 
 		void setShadows(bool enabled) { shadows = enabled; }
 		bool castsShadows() { return shadows; }
@@ -277,42 +228,27 @@ namespace kuai {
 
 	public: // TODO: Should not be public, use friend class
 		glm::mat4& getLightSpaceMatrix() { return lightSpaceMatrix; }
-		void calcLightSpaceMatrix() { lightSpaceMatrix = shadowCam.getProjectionMatrix() * shadowCam.getViewMatrix(); }
+		void calcLightSpaceMatrix() { /*lightSpaceMatrix = shadowCam.getProjectionMatrix() * shadowCam.getViewMatrix(); */ }
 
 	private:
 		uint32_t lightId = 0;
 
-		LightType type = LightType::Point;
-
 		glm::vec3 col = { 1.0f, 1.0f, 1.0f };
 		float intensity = 1;
 
-		// Only used for point light and spot light (attenuation values)
+		// Attenuation values
 		float linear = 0.1f;
 		float quadratic = 0.025f;
 
-		// Only used for spot light
-		float angle = 30;
+		float angle = 0.0f;
 
 		bool shadows = false;
-		Camera shadowCam;
 		glm::mat4 lightSpaceMatrix;
 
 	private:
 		static uint32_t lightCount;
 
 		friend class Transform;
-	};
-
-	class LightChangedEvent : public Event
-	{
-	public:
-		LightChangedEvent(Light* light) : light(light) {}
-
-		EVENT_CLASS_TYPE(EventType::LightChanged);
-		EVENT_CLASS_CATEGORY(0);
-
-		Light* light;
 	};
 
 	// Forward declarations
@@ -324,7 +260,7 @@ namespace kuai {
 	class AudioListener : public Component
 	{
 	public:
-		AudioListener(Entity* entity) : Component(entity) {}
+		AudioListener() {}
 
 		float getGain();
 		void setGain(float gain);
@@ -341,7 +277,7 @@ namespace kuai {
 	class AudioSourceComponent : public Component
 	{
 	public:
-		AudioSourceComponent(Entity* entity, bool stream = false);
+		AudioSourceComponent(bool stream = false);
 		AudioSourceComponent(const AudioSourceComponent&) = delete;
 		~AudioSourceComponent();
 
@@ -354,15 +290,4 @@ namespace kuai {
 
 		friend class Transform;
 	};
-}
-
-#include "Entity.h"
-
-namespace kuai
-{
-	template<typename T>
-	bool Component::hasComponent() { return entity->template hasComponent<T>(); }
-
-	template<typename T>
-	T& Component::getComponent() { return entity->template getComponent<T>(); }
 }

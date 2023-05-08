@@ -9,7 +9,6 @@
 
 #include "kuai/Events/Event.h"
 
-// @cond
 namespace kuai {
 
 	class IFnHandler
@@ -110,8 +109,6 @@ namespace kuai {
 		void registerComponent()
 		{
 			componentManager->registerComponent<T>();
-
-			KU_CORE_INFO("Registered new component: {0}", typeid(T).name());
 		}
 
 		template<typename T, typename ...Args>
@@ -160,11 +157,11 @@ namespace kuai {
 		// *** System Management **********************************************
 
 		template<typename T>
-		Rc<T> registerSystem(Scene* scene)
+		Rc<T> registerSystem()
 		{
-			KU_CORE_INFO("Registered new system: {0}", typeid(T).name());
-
-			return systemManager->RegisterSystem<T>(scene);
+			auto& sm = systemManager->RegisterSystem<T>();
+			sm->setECS(this); // :(
+			return sm;
 		}
 
 		template<typename T>
@@ -196,4 +193,3 @@ namespace kuai {
 		Box<EventBus> eventBus;
 	};
 }
-//@endcond

@@ -13,7 +13,6 @@
 #include "kuai/Events/MouseEvent.h"
 
 #include "kuai/Components/Components.h"
-#include "kuai/Components/Scene.h"
 #include "kuai/Components/Entity.h"
 
 #include "kuai/Renderer/Shader.h"

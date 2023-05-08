@@ -15,8 +15,13 @@ namespace kuai {
 
 		void update() override;
 
-		inline unsigned int getWidth() const override { return data.width; }
-		inline unsigned int getHeight() const override { return data.height; }
+		inline uint32_t getWidth() const override { return data.width; }
+		inline uint32_t getHeight() const override { return data.height; }
+		virtual void setSize(uint32_t, uint32_t) override;
+
+		inline uint32_t getXPos() const override { return data.screenX; }
+		inline uint32_t getYPos() const override { return data.screenY; }
+		virtual void setPos(uint32_t, uint32_t) override;
 
 		inline void setEventCallback(const EventCallbackFn& callback) override
 		{
@@ -26,6 +31,7 @@ namespace kuai {
 		virtual bool isVSync() const override;
 
 		virtual void* getNativeWindow() const { return window; }
+		virtual bool isActive() const override;
 	private:
 		virtual void init(const WindowProps& props);
 		virtual void cleanup();
@@ -36,7 +42,9 @@ namespace kuai {
 		{
 			std::string title;
 			uint32_t width, height;
+			uint32_t screenX, screenY;
 			bool vSync;
+			bool isActive;
 
 			EventCallbackFn eventCallback;
 		};

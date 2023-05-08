@@ -8,6 +8,7 @@
 namespace kuai {
 	using ComponentType = uint8_t;
 
+	class ComponentManager;
 	class IComponentContainer
 	{
 	public:
@@ -21,15 +22,15 @@ namespace kuai {
 	{
 	public:
 		template <typename ...Args>
-		void insert(EntityID entity, Args&&... args)
+		void insert(EntityID entity, Box<T> component)
 		{
 			KU_CORE_ASSERT(entityToIndex.find(entity) == entityToIndex.end(), "Added duplicate component to entity");
 
 			entityToIndex[entity] = size;
 			indexToEntity[size] = entity;
 
-			components[size] = MakeBox<T>(args...);
-
+			components[size] = std::move(component);
+	
 			size++;
 		}
 
@@ -63,9 +64,21 @@ namespace kuai {
 			return *(components[entityToIndex[entity]].get()); // Return reference to entity's component
 		}
 
-		bool has(EntityID entity)
+		bool has(EntityID entity) const
 		{
 			return entityToIndex.find(entity) != entityToIndex.end();
+		}
+
+		EntityID getEntityIDFromComponent(const T& component) const
+		{
+			for (size_t index = 0; index < size; ++index)
+			{
+				if (components[index].get() == &component)
+				{
+					return indexToEntity.at(index);
+				}
+			}
+			return -1;
 		}
 
 		virtual void onEntityDestroyed(EntityID entity) override
@@ -107,7 +120,10 @@ namespace kuai {
 		template<typename T, typename... Args>
 		void addComponent(EntityID entity, Args&&... args)
 		{
-			getComponentContainer<T>()->insert(entity, std::forward<Args>(args)...);
+			auto component = MakeBox<T>(args...);
+			component->cm = this;
+			component->id = entity;
+			getComponentContainer<T>()->insert(entity, std::move(component));
 		}
 
 		template<typename T>

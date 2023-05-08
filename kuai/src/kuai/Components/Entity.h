@@ -29,9 +29,9 @@ namespace kuai {
 		*/
 		template<class T, typename ...Args>
 		T& addComponent(Args&& ...args)
-		{
+		{				
 			// Send a reference of this entity to the component
-			ECS->template addComponent<T>(id, this, std::forward<Args>(args)...);
+			ECS->template addComponent<T>(id, std::forward<Args>(args)...);
 			return ECS->template getComponent<T>(id);
 		}
 

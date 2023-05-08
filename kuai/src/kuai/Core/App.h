@@ -33,24 +33,29 @@ namespace kuai {
 		* Pushes a layer on to the layer stack.
 		*/
 		void pushLayer(Layer* layer);
-		/**
-		* Pushes an overlay on to the layer stack. Overlays will always get updated last.
-		*/
-		void pushOverlay(Layer* layer);
+
+		void addWindow(const WindowProps& props);
+
+		void removeWindow();
 
 		/**
 		* Returns the app instance.
 		*/
 		inline static App& get() { return *instance; }
+
 		/**
-		* Returns the window instance.
+		* Returns vector of window instances.
 		*/
-		inline Window& getWindow() { return *window; }
+		std::vector<Box<Window>>& getWindows() { return windows; }
+		Window* getActiveWindow();
+
 	private:
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
+
 	private:
-		std::unique_ptr<Window> window;
+		std::vector<Box<Window>> windows;
+
 		Timer timer;
 		bool running = true;
 		bool minimised = false;

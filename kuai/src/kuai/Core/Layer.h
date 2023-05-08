@@ -2,6 +2,7 @@
 
 #include "kuai/Core/Core.h"
 #include "kuai/Events/Event.h"
+#include "kuai/Components/EntityComponentSystem.h"
 
 namespace kuai {
 	/** \class Layer
@@ -36,6 +37,8 @@ namespace kuai {
 
 		inline const std::string& getName() const { return name; }
 	protected:
+		Box<EntityComponentSystem> ECS;
+
 		std::string name;
 	};
 }

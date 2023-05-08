@@ -1,7 +1,8 @@
 #pragma once
 
 namespace kuai {
-	class Scene; // Forward declarations
+	// Forward declarations
+	class EntityComponentSystem; 
 	class Entity;
 
 	using EntityID = uint32_t;
@@ -11,7 +12,7 @@ namespace kuai {
 	class System
 	{
 	public:
-		System(Scene* scene) : scene(scene) {}
+		System(bool acceptsSubset = false);
 
 		virtual void update(float dt) = 0;
 
@@ -23,14 +24,15 @@ namespace kuai {
 
 	protected:
 		std::vector<std::shared_ptr<Entity>> entities;
+	private:
+		bool hasEntity(EntityID entity);
 
-		Scene* scene;
-
-		bool acceptsSubset = false;	// Add entities that have components which are a subset of the system's component mask
+		void setECS(EntityComponentSystem* ECS);
 
 	private:
+		EntityComponentSystem* ECS;
 
-		bool hasEntity(EntityID entity);
+		bool acceptsSubset; // Add entities that have components which are a subset of the system's component mask
 
 		friend class SystemManager;
 	};
