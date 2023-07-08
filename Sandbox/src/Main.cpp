@@ -29,13 +29,13 @@ public:
 	float counter = 0;
 	float x = 0.0f;
 
-	Rc<Model> cubeModel = MakeRc<Model>("C:/Users/David/Documents/cube.obj");
+	Rc<Model> cubeModel = makeRc<Model>("C:/Users/David/Documents/cube.obj");
 
 	std::vector<Rc<Entity>> entities;
 
 	BaseLayer() : Layer("Base"), scene(std::make_unique<Scene>())
 	{
-		auto whiteTex = MakeRc<Texture>();
+		auto whiteTex = makeRc<Texture>();
 
 		std::vector<std::string> faces =
 		{
@@ -47,16 +47,16 @@ public:
 			"C:/Users/David/Pictures/skybox/back.jpg"
 		};
 
-		auto& cubemap = MakeRc<Cubemap>(faces);
-		auto& skybox = MakeRc<Skybox>(cubemap);
+		auto& cubemap = makeRc<Cubemap>(faces);
+		auto& skybox = makeRc<Skybox>(cubemap);
 
 		auto& skyboxEntity = scene->createEntity();
 		skyboxEntity->addComponent<MeshRenderer>(skybox);
 
-		auto& grassTex = MakeRc<Texture>("C:/Users/David/Pictures/grass.png");
-		auto& grassMat = MakeRc<DefaultMaterial>(grassTex, grassTex, 10.0f);
+		auto& grassTex = makeRc<Texture>("C:/Users/David/Pictures/grass.png");
+		auto& grassMat = makeRc<DefaultMaterial>(grassTex, grassTex, 10.0f);
 
-		auto& plane = MakeRc<Model>("C:/Users/David/Documents/plane.obj");
+		auto& plane = makeRc<Model>("C:/Users/David/Documents/plane.obj");
 
 		plane->getMaterials()[0] = grassMat;
 
@@ -65,8 +65,8 @@ public:
 		planeEntity->getTransform().setPos(0, -1, -2);
 		planeEntity->getTransform().setScale(1, 0.5f, 1);
 
-		auto& model = MakeRc<Model>("C:/Users/David/Documents/bunny.obj");
-		auto& modelMat = MakeRc<DefaultMaterial>(whiteTex, whiteTex, 30.0f);
+		auto& model = makeRc<Model>("C:/Users/David/Documents/bunny.obj");
+		auto& modelMat = makeRc<DefaultMaterial>(whiteTex, whiteTex, 30.0f);
 		//modelMat->setReflection(cubemap);
 		model->getMaterials()[0] = modelMat;
 		
@@ -79,7 +79,7 @@ public:
 		pointLight->addComponent<Light>().setIntensity(0.5f);
 		pointLight->getTransform().setPos(-1, 4, -2);
 
-		auto& audio = MakeRc<AudioClip>("C:/Users/David/Music/jigsaw.wav");
+		auto& audio = makeRc<AudioClip>("C:/Users/David/Music/jigsaw.wav");
 
 		myEntity->addComponent<AudioSourceComponent>(false);
 		auto& a = myEntity->getComponent<AudioSourceComponent>();

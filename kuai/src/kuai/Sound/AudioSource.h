@@ -20,14 +20,13 @@ namespace kuai {
 		};
 
         AudioSource();
-		virtual ~AudioSource();
-		void cleanup();
-        
+		virtual void cleanup();
+       
 		virtual void play();
 		virtual void pause();
 		virtual void stop();
 
-		virtual void setAudioClip(std::shared_ptr<AudioClip> audioClip);
+		virtual void setAudioClip(Rc<AudioClip> audioClip);
 
 		float getPitch() const;
 		void setPitch(float pitch);
@@ -54,7 +53,7 @@ namespace kuai {
 		uint32_t getId();
 
 	protected:
-		std::shared_ptr<AudioClip> audioClip = nullptr;
+		Rc<AudioClip> audioClip = nullptr;
 		bool loop = false;
 
 		uint32_t sourceId = 0;
@@ -62,6 +61,6 @@ namespace kuai {
 		uint32_t buffers[BUF_COUNT];
 
 		friend class AudioManager;
-		friend class AudioSourceComponent;
+		friend class SoundSource;
     };
 }

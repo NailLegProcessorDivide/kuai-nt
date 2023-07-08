@@ -5,18 +5,16 @@
 
 namespace kuai {
 
-	System::System(bool acceptsSubset) : acceptsSubset(acceptsSubset) {}
-
-	void System::insertEntity(EntityID entity)
+	void System::insertEntity(EntityID id)
 	{
-		entities.push_back(MakeRc<Entity>(ECS, entity));
+		entities.push_back(Entity(ECS, id));
 	}
 
-	void System::removeEntity(EntityID entity)
+	void System::removeEntity(EntityID id)
 	{
 		for (size_t i = 0; i < entities.size(); i++)
 		{
-			if (entities[i]->getId() == entity)
+			if (entities[i].getId() == id)
 			{
 				entities.erase(entities.begin() + i);
 				break;
@@ -24,25 +22,25 @@ namespace kuai {
 		}
 	}
 
-	std::vector<std::shared_ptr<Entity>>& System::getEntities()
+	void System::acceptSubset(bool val)
+	{
+		acceptsSubset = val;
+	}
+
+	std::vector<Entity>& System::getEntities()
 	{
 		return entities;
 	}
 
-	bool System::hasEntity(EntityID entity)
+	bool System::hasEntity(EntityID id)
 	{
 		for (size_t i = 0; i < entities.size(); i++)
 		{
-			if (entities[i]->getId() == entity)
+			if (entities[i].getId() == id)
 			{
 				return true;
 			}
 		}
 		return false;
-	}
-
-	void System::setECS(EntityComponentSystem* ECS)
-	{
-		this->ECS = ECS;
 	}
 }

@@ -5,7 +5,6 @@
 
 // @cond
 namespace kuai {
-	class Scene; // Forward declaration
 	/**
 	* Manages creation and deletion of all systems
 	* Updates each system when an entity's component mask changes
@@ -14,13 +13,13 @@ namespace kuai {
 	{
 	public:
 		template<typename T>
-		std::shared_ptr<T> RegisterSystem(Scene* scene)
+		Rc<T> registerSystem()
 		{
 			const char* typeName = typeid(T).name();
 
 			KU_CORE_ASSERT(systems.find(typeName) == systems.end(), "Registering a system more than once");
 
-			auto system = std::make_shared<T>(scene);
+			auto system = makeRc<T>();
 			systems.insert({ typeName, system });
 			return system;
 		}
@@ -35,16 +34,16 @@ namespace kuai {
 			systemMasks.insert({ typeName, componentMask });
 		}
 
-		void onEntityDestroyed(EntityID entity)
+		void onEntityDestroyed(EntityID id)
 		{
 			for (auto const& pair : systems)
 			{
 				auto const& system = pair.second;
-				system->removeEntity(entity);
+				system->removeEntity(id);
 			}
 		}
 
-		void onEntityComponentMaskChanged(EntityID entity, ComponentMask entityComponentMask)
+		void onEntityComponentMaskChanged(EntityID id, ComponentMask entityComponentMask)
 		{
 			// Update each system
 			for (auto const& pair : systems)
@@ -56,13 +55,13 @@ namespace kuai {
 				// If entity's component mask matches this system, add it to the system's list
 				if (entityComponentMask == systemComponentMask || (system->acceptsSubset && (entityComponentMask & systemComponentMask)))
 				{
-					if (!system->hasEntity(entity))
-						system->insertEntity(entity);
+					if (!system->hasEntity(id))
+						system->insertEntity(id);
 				}
 				else
 				{
-					if (system->hasEntity(entity))
-						system->removeEntity(entity);
+					if (system->hasEntity(id))
+						system->removeEntity(id);
 				}
 			}
 		}

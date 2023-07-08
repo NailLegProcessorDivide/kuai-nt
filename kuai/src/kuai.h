@@ -3,7 +3,6 @@
 // For use by kuai applications
 
 #include "kuai/Core/App.h"
-#include "kuai/Core/Layer.h"
 #include "kuai/Core/Log.h"
 
 #include "kuai/Core/Input.h"
@@ -21,8 +20,5 @@
 #include "kuai/Renderer/Material.h"
 #include "kuai/Renderer/Mesh.h"
 #include "kuai/Renderer/Model.h"
-#include "kuai/Renderer/Geometry.h"
-#include "kuai/Renderer/Skybox.h"
 
 #include "kuai/Sound/AudioClip.h"
-#include "kuai/Sound/AudioSource.h"

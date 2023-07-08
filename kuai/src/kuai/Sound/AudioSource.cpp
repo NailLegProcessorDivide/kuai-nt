@@ -4,17 +4,11 @@
 #include "AudioClip.h"
 #include "AudioManager.h"
 
-#include <mutex>
-
 namespace kuai {
 	AudioSource::AudioSource()
 	{
 		alCheck(alGenSources(1, &sourceId));
 		alCheck(alGenBuffers(BUF_COUNT, buffers));
-	}
-
-	AudioSource::~AudioSource()
-	{
 	}
 
 	void AudioSource::cleanup()
@@ -43,7 +37,7 @@ namespace kuai {
 		alCheck(alSourceStop(sourceId));
 	}
 
-	void AudioSource::setAudioClip(std::shared_ptr<AudioClip> audioClip)
+	void AudioSource::setAudioClip(Rc<AudioClip> audioClip)
 	{
 		this->audioClip = audioClip;
 

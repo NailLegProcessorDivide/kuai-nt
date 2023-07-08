@@ -16,7 +16,7 @@ namespace kuai {
 
 	Box<Window> Window::create(const WindowProps& props)
 	{
-		return MakeBox<WinWindow>(props);
+		return makeBox<WinWindow>(props);
 	}
 
 	WinWindow::WinWindow(const WindowProps& props)
@@ -175,7 +175,6 @@ namespace kuai {
 
 	void WinWindow::update()
 	{
-		KU_PROFILE_FUNCTION();
 		glfwPollEvents();
 		glfwSwapBuffers(window);
 	}

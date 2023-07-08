@@ -15,18 +15,6 @@ namespace kuai {
 		DefaultShader();
 	};
 
-	class SkyboxShader : public Shader
-	{
-	public:
-		SkyboxShader();
-	};
-
-	class DepthShader : public Shader
-	{
-	public:
-		DepthShader();
-	};
-
 	class StaticShader
 	{
 	public:
@@ -34,8 +22,6 @@ namespace kuai {
 		static void cleanup();
 
 		static Shader* basic;
-		static Shader* skybox;
-		static Shader* depth;
 	};
 }
 

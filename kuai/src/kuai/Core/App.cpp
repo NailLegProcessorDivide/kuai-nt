@@ -1,10 +1,10 @@
-#include "App.h"
 #include "kpch.h"
 #include "App.h"
 #include "Log.h"
 
 #include "kuai/Renderer/Renderer.h"
 #include "kuai/Sound/AudioManager.h"
+#include "Systems.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -15,8 +15,10 @@ namespace kuai {
 
 	App* App::instance = nullptr;
 
-	App::App() 
+	App::App()
 	{
+		Log::Init();
+
 		KU_CORE_ASSERT(!instance, "Application already exists");
 		instance = this;
 
@@ -25,11 +27,33 @@ namespace kuai {
 
 		Renderer::init();
 		AudioManager::init();
+
+		ECS = new EntityComponentSystem();
+
+		ECS->registerComponent<Transform>();
+		ECS->registerComponent<Cam>();
+		ECS->registerComponent<Light>();
+		ECS->registerComponent<MeshRenderer>();
+		ECS->registerComponent<Listener>();
+		ECS->registerComponent<SoundSource>();
+
+		renderSys = ECS->registerSystem<RenderSystem>();
+		renderSys->acceptSubset(true);
+		ECS->setSystemMask<RenderSystem>(BIT(ECS->getComponentType<MeshRenderer>()));
+
+		mainCam = makeBox<Entity>(ECS);
+		mainCam->addComponent<Cam>(
+			60.0f,
+			(float)App::get().getWindow()->getWidth() / (float)App::get().getWindow()->getHeight(),
+			0.1f,
+			100.0f
+		);
+		Renderer::setCamera(mainCam->getComponent<Cam>());
 	}
 
 	App::~App() 
 	{
-
+		delete ECS;
 	}
 
 	void App::run() 
@@ -41,12 +65,8 @@ namespace kuai {
 						
 			if (!minimised)
 			{
-				{
-					KU_PROFILE_SCOPE("LayerStack update");
-
-					for (Layer* layer : layerStack)
-						layer->update(elapsedTime);
-				}
+				update(elapsedTime);
+				renderSys->update(elapsedTime);
 			}
 			for (auto& window : windows)
 			{
@@ -58,29 +78,10 @@ namespace kuai {
 		Renderer::cleanup();
 	}
 
-	void App::onEvent(Event* e)
-	{
-		EventDispatcher dispatcher(e);
-		dispatcher.dispatch<WindowCloseEvent>(BIND(&App::onWindowClose));
-		dispatcher.dispatch<WindowResizeEvent>(BIND(&App::onWindowResize));
-
-		for (auto it = layerStack.end(); it != layerStack.begin(); ) // Start from end and go backwards through stack
-		{
-			(*--it)->onEvent(e);
-			if (e->handled) // As soon as event handled, break
-				break;
-		}
-	}
-
-	void App::pushLayer(Layer* layer)
-	{
-		layerStack.pushLayer(layer);
-	}
-
 	void App::addWindow(const WindowProps& props)
 	{
 		auto window = Window::create(props);
-		window->setEventCallback(BIND(&App::onEvent));
+		window->setEventCallback(BIND(&App::onEventP));
 		windows.push_back(std::move(window));
 	}
 
@@ -88,6 +89,13 @@ namespace kuai {
 	{
 	}
 
+	void App::onEventP(Event* e)
+	{
+		EventDispatcher dispatcher(e);
+		dispatcher.dispatch<WindowCloseEvent>(BIND(&App::onWindowClose));
+		dispatcher.dispatch<WindowResizeEvent>(BIND(&App::onWindowResize));
+		onEvent(e);
+	}
 
 	bool App::onWindowClose(WindowCloseEvent& e)
 	{

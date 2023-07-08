@@ -8,7 +8,7 @@ namespace kuai
 
 	namespace Mouse
 	{
-		enum Mouse : MouseBtnCode
+		enum : MouseBtnCode
 		{
 			// From glfw3.h
 			Button0 = 0,

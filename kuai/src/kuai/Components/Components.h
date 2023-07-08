@@ -3,8 +3,9 @@
 #include "glm/glm.hpp"
 #include "glm/gtx/quaternion.hpp"
 
-#include "kuai/Core/Core.h"
 #include "ComponentManager.h"
+
+#include "kuai/Core/Core.h"
 
 #include "kuai/Renderer/Mesh.h"
 #include "kuai/Renderer/Model.h"
@@ -13,6 +14,7 @@
 #include "kuai/Renderer/Camera.h"
 
 #include "kuai/Sound/AudioClip.h"
+#include "kuai/Sound/AudioSource.h"
 
 #include "kuai/Events/Event.h"
 
@@ -38,6 +40,11 @@ namespace kuai {
 		EntityID id;
 
 		friend ComponentManager;
+	};
+
+	class Name : public Component
+	{
+
 	};
 
 	/** \class Transform
@@ -163,7 +170,7 @@ namespace kuai {
 	public:
 		MeshRenderer() = default;
 		MeshRenderer(Rc<Model> model) : model(model) {}
-		MeshRenderer(Rc<Mesh> mesh) : model(MakeRc<Model>(mesh)) {}
+		MeshRenderer(Rc<Mesh> mesh) : model(makeRc<Model>(mesh)) {}
 
 		void render()
 		{
@@ -188,7 +195,10 @@ namespace kuai {
 	class Cam : public Camera, public Component
 	{
 	public:
-
+		Cam(float fov, float aspect, float zNear, float zFar) 
+			: Camera(fov, aspect, zNear, zFar)
+		{ 
+		}
 
 		bool isMain = false; // Indicates whether this is the main camera (i.e. the camera that renders to the window)
 	};
@@ -251,16 +261,13 @@ namespace kuai {
 		friend class Transform;
 	};
 
-	// Forward declarations
-	class AudioSource;
-
-	/** \class AudioListener
-	*	\brief Acts like a microphone; plays back sounds in a scene. Only one AudioListener is permitted per scene.
+	/** \class Listener
+	*	\brief Acts like a microphone; plays back sounds in a scene. Only one Listener is permitted per scene.
 	*/
-	class AudioListener : public Component
+	class Listener : public Component
 	{
 	public:
-		AudioListener() {}
+		Listener() {}
 
 		float getGain();
 		void setGain(float gain);
@@ -274,19 +281,38 @@ namespace kuai {
 	/** \class AudioSourceComponent
 	*	\brief Acts like a speaker; generates sounds in a scene. Must be provided with an AudioClip to play.
 	*/
-	class AudioSourceComponent : public Component
+	class SoundSource : public Component
 	{
 	public:
-		AudioSourceComponent(bool stream = false);
-		AudioSourceComponent(const AudioSourceComponent&) = delete;
-		~AudioSourceComponent();
+		SoundSource(bool stream = false);
+		SoundSource(const SoundSource&) = delete;
+		~SoundSource();
 
-		Rc<AudioSource> get();
+		void play() { source->play(); }
+		void pause() { source->pause(); }
+		void stop() { source->stop(); }
+
+		void setAudioClip(Rc<AudioClip> audioClip) { source->setAudioClip(audioClip); }
+
+		float getPitch() const { return source->getPitch(); }
+		void setPitch(float pitch) { source->setPitch(pitch); }
+
+		float getGain() const { return source->getGain(); }
+		void setGain(float gain) { source->setGain(gain); }
+
+		float getRolloff() const { return source->getRolloff(); }
+		void setRolloff(float rolloff) { source->setRolloff(rolloff); }
+
+		float getRefDist() const { return source->getRefDist(); }
+		void setRefDist(float refDist) { source->setRefDist(refDist); }
+
+		bool isLoop() const { return source->isLoop(); }
+		void setLoop(bool loop) { source->setLoop(loop); }
 
 	private:
 		void update();
 
-		Rc<AudioSource> source;
+		AudioSource* source;
 
 		friend class Transform;
 	};

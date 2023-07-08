@@ -5,7 +5,6 @@
 #include "sndfile.hh"
 
 namespace kuai {
-
 	AudioClip::AudioClip(const std::string& filename) : handle(new SndfileHandle(filename))
 	{
 	}

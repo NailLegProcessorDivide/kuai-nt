@@ -16,7 +16,12 @@ namespace kuai {
 		Entity(EntityComponentSystem* ECS) : ECS(ECS)
 		{
 			id = ECS->createEntity();
-			addComponent<Transform>(); // Every entity has a transform
+			ECS->addComponent<Transform>(id); // Every entity has a transform
+		}
+
+		Entity(EntityComponentSystem* ECS, std::string& name) : Entity(ECS)
+		{
+			//ECS->addComponent<Name>(id, name);
 		}
 		
 		/// @private

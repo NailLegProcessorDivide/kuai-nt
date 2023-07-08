@@ -12,28 +12,28 @@ namespace kuai {
 	class System
 	{
 	public:
-		System(bool acceptsSubset = false);
-
 		virtual void update(float dt) = 0;
 
-		virtual void insertEntity(EntityID entity);
+		virtual void insertEntity(EntityID id);
 
-		virtual void removeEntity(EntityID entity);
+		virtual void removeEntity(EntityID id);
 
-		std::vector<std::shared_ptr<Entity>>& getEntities();
+		void acceptSubset(bool val);
+
+		std::vector<Entity>& getEntities();
 
 	protected:
-		std::vector<std::shared_ptr<Entity>> entities;
-	private:
-		bool hasEntity(EntityID entity);
-
-		void setECS(EntityComponentSystem* ECS);
-
-	private:
 		EntityComponentSystem* ECS;
 
+		std::vector<Entity> entities;
+
+	private:
+		bool hasEntity(EntityID id);
+
+	private:
 		bool acceptsSubset; // Add entities that have components which are a subset of the system's component mask
 
 		friend class SystemManager;
+		friend class EntityComponentSystem;
 	};
 }

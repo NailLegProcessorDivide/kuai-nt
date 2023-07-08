@@ -28,8 +28,8 @@ namespace kuai {
 		if (!material)
 		{
 			// Default material
-			Rc<Texture> tex = MakeRc<Texture>();
-			materials.push_back(MakeRc<DefaultMaterial>(tex, tex, 10.0f));
+			Rc<Texture> tex = makeRc<Texture>();
+			materials.push_back(makeRc<DefaultMaterial>(tex, tex, 10.0f));
 		}
 		else
 			materials.push_back(material);
@@ -94,13 +94,13 @@ namespace kuai {
 			// TODO: normal maps and height maps
 			if (textures.size() > 1)
 			{
-				materials.push_back(MakeRc<DefaultMaterial>(MakeRc<Texture>(*textures[0]), MakeRc<Texture>(*textures[1]), 20.0f));
-				return MakeRc<Mesh>(vertexData, indices);
+				materials.push_back(makeRc<DefaultMaterial>(makeRc<Texture>(*textures[0]), makeRc<Texture>(*textures[1]), 20.0f));
+				return makeRc<Mesh>(vertexData, indices);
 			}
 		}
 
-		materials.push_back(MakeRc<DefaultMaterial>(MakeRc<Texture>(), MakeRc<Texture>(), 20.0f));
-		return MakeRc<Mesh>(vertexData, indices);
+		materials.push_back(makeRc<DefaultMaterial>(makeRc<Texture>(), makeRc<Texture>(), 20.0f));
+		return makeRc<Mesh>(vertexData, indices);
 	}
 
 	std::vector<Texture*> Model::loadMaterialTextures(aiMaterial* mat, uint64_t type)

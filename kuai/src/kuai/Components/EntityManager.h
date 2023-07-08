@@ -3,7 +3,7 @@
 // @cond
 namespace kuai {
 
-	const uint32_t MAX_ENTITIES = 100000;
+	const uint32_t MAX_ENTITIES = 10000;
 	const uint32_t MAX_COMPONENTS = 32;
 
 	using EntityID = uint32_t;
@@ -20,37 +20,39 @@ namespace kuai {
 		EntityManager()
 		{
 			for (size_t i = 0; i < MAX_ENTITIES; i++)
+			{
 				availableEntities.push_back(MAX_ENTITIES - i);
+			}
 		}
 
 		EntityID createEntity()
 		{
 			KU_CORE_ASSERT(entityNo < MAX_ENTITIES, "Exceeded maximum number of entities");
 
-			EntityID entity = availableEntities.back();
+			EntityID id = availableEntities.back();
 			availableEntities.pop_back();
-			componentMasks[entity] = 0;
+			componentMasks[id] = 0;
 			entityNo++;
 
-			return entity;
+			return id;
 		}
 
-		void destroyEntity(EntityID entity)
+		void destroyEntity(EntityID id)
 		{
-			componentMasks[entity] = 0;
+			componentMasks[id] = 0;
 
-			availableEntities.push_back(entity);
+			availableEntities.push_back(id);
 			entityNo--;
 		}
 
-		ComponentMask getComponentMask(EntityID entity)
+		ComponentMask getComponentMask(EntityID id)
 		{
-			return componentMasks[entity];
+			return componentMasks[id];
 		}
 
-		void setComponentMask(EntityID entity, ComponentMask componentMask)
+		void setComponentMask(EntityID id, ComponentMask componentMask)
 		{
-			componentMasks[entity] = componentMask;
+			componentMasks[id] = componentMask;
 		}
 
 	private:

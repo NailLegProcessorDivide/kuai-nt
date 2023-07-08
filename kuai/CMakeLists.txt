@@ -28,13 +28,10 @@ add_library(${PROJECT_NAME}
     src/kuai/Core/Core.h
     src/kuai/Core/Input.h
     src/kuai/Core/KeyCodes.h
-    src/kuai/Core/Layer.h
-    src/kuai/Core/Layer.cpp
-    src/kuai/Core/LayerStack.h
-    src/kuai/Core/LayerStack.cpp
     src/kuai/Core/Log.h
     src/kuai/Core/Log.cpp
     src/kuai/Core/MouseBtnCodes.h
+    src/kuai/Core/Systems.h
     src/kuai/Core/Timer.h
     src/kuai/Core/Window.h
 
@@ -55,7 +52,6 @@ add_library(${PROJECT_NAME}
     src/kuai/Renderer/Framebuffer.h
     src/kuai/Renderer/Framebuffer.cpp
     src/kuai/Renderer/Geometry.h
-    src/kuai/Renderer/Geometry.cpp
     src/kuai/Renderer/Material.h
     src/kuai/Renderer/Material.cpp
     src/kuai/Renderer/Mesh.h
@@ -66,14 +62,12 @@ add_library(${PROJECT_NAME}
     src/kuai/Renderer/Renderer.cpp
     src/kuai/Renderer/Shader.h
     src/kuai/Renderer/Shader.cpp
-    src/kuai/Renderer/Shader.h
-    src/kuai/Renderer/Shader.cpp
-    src/kuai/Renderer/Skybox.h
-    src/kuai/Renderer/Skybox.cpp
     src/kuai/Renderer/StaticShader.h
     src/kuai/Renderer/StaticShader.cpp
     src/kuai/Renderer/Texture.h
     src/kuai/Renderer/Texture.cpp
+    src/kuai/Renderer/TextureArray.h
+    src/kuai/Renderer/TextureArray.cpp
 
     src/kuai/Sound/AudioClip.h
     src/kuai/Sound/AudioClip.cpp

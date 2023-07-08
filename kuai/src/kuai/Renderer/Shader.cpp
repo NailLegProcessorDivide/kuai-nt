@@ -14,8 +14,8 @@ namespace kuai {
 		fragShaderId = createShader(fragSrc.c_str(), GL_FRAGMENT_SHADER);
 		link();
 
-		vao = MakeRc<VertexArray>();
-		ibo = MakeBox<IndirectBuffer>(std::vector<IndirectCommand>());
+		vao = makeRc<VertexArray>();
+		ibo = makeBox<IndirectBuffer>(std::vector<IndirectCommand>());
 	}
 
 	Shader::~Shader()
@@ -72,7 +72,7 @@ namespace kuai {
 		glUniformMatrix4fv(uniforms.at(name), 1, GL_FALSE, &val[0][0]);
 	}
 
-	void Shader::createUniformBlock(const std::string& name, const std::vector<const char*>& members, uint32_t binding)
+	void Shader::createUniformBlock(const std::string& name, const std::vector<const char*>& members, u32 binding)
 	{
 		// Get block index and block size
 		uint32_t blockIndex = glGetUniformBlockIndex(programId, name.c_str());
@@ -101,7 +101,7 @@ namespace kuai {
 		ubos[name] = ubo;
 	}
 
-	void Shader::setUniform(const std::string& name, const std::string& member, const void* data, uint32_t size) const
+	void Shader::setUniform(const std::string& name, const std::string& member, const void* data, u32 size) const
 	{
 		glNamedBufferSubData(ubos.at(name), uboOffsets.at(member), size, data);
 	}
@@ -118,7 +118,7 @@ namespace kuai {
 
 	void Shader::setIndirectBufData(const std::vector<IndirectCommand>& commands)
 	{
-		ibo = MakeBox<IndirectBuffer>(commands);
+		ibo = makeBox<IndirectBuffer>(commands);
 		ibo->bind();
 	}
 

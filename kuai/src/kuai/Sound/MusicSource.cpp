@@ -8,16 +8,16 @@
 #include "AudioManager.h"
 
 #include <mutex>
-#include "kuai/Components/Components.h"
 
 namespace kuai {
 	MusicSource::MusicSource()
 	{
 	}
 
-	MusicSource::~MusicSource()
+	void MusicSource::cleanup()
 	{
 		awaitThread();
+		AudioSource::cleanup();
 	}
 
 	void MusicSource::play()
@@ -63,7 +63,7 @@ namespace kuai {
 		awaitThread();
 	}
 
-	void MusicSource::setAudioClip(std::shared_ptr<AudioClip> audioClip)
+	void MusicSource::setAudioClip(Rc<AudioClip> audioClip)
 	{
 		this->audioClip = audioClip;
 	}

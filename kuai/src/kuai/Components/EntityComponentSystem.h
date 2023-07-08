@@ -83,10 +83,10 @@ namespace kuai {
 	public:
 		EntityComponentSystem()
 		{
-			entityManager = std::make_unique<EntityManager>();
-			componentManager = std::make_unique<ComponentManager>();
-			systemManager = std::make_unique<SystemManager>();
-			eventBus = std::make_unique<EventBus>();
+			entityManager = makeBox<EntityManager>();
+			componentManager = makeBox<ComponentManager>();
+			systemManager = makeBox<SystemManager>();
+			eventBus = makeBox<EventBus>();
 		}
 
 		// *** Entity Management **********************************************
@@ -96,11 +96,11 @@ namespace kuai {
 			return entityManager->createEntity();
 		}
 
-		void destroyEntity(EntityID entity)
+		void destroyEntity(EntityID id)
 		{
-			systemManager->onEntityDestroyed(entity);
-			entityManager->destroyEntity(entity);
-			componentManager->onEntityDestroyed(entity);
+			systemManager->onEntityDestroyed(id);
+			entityManager->destroyEntity(id);
+			componentManager->onEntityDestroyed(id);
 		}
 
 		// *** Component Management *******************************************
@@ -112,39 +112,39 @@ namespace kuai {
 		}
 
 		template<typename T, typename ...Args>
-		void addComponent(EntityID entity, Args&& ...args)
+		void addComponent(EntityID id, Args&& ...args)
 		{
-			componentManager->addComponent<T>(entity, std::forward<Args>(args)...);
+			componentManager->addComponent<T>(id, std::forward<Args>(args)...);
 
-			auto componentMask = entityManager->getComponentMask(entity);
+			auto componentMask = entityManager->getComponentMask(id);
 			componentMask |= BIT(componentManager->getComponentType<T>());
 
-			entityManager->setComponentMask(entity, componentMask);
-			systemManager->onEntityComponentMaskChanged(entity, componentMask);
+			entityManager->setComponentMask(id, componentMask);
+			systemManager->onEntityComponentMaskChanged(id, componentMask);
 		}
 
 		template<typename T>
-		void removeComponent(EntityID entity)
+		void removeComponent(EntityID id)
 		{
-			componentManager->removeComponent<T>(entity);
+			componentManager->removeComponent<T>(id);
 
-			auto componentMask = entityManager->getComponentMask(entity);
+			auto componentMask = entityManager->getComponentMask(id);
 			componentMask &= BIT(componentManager->getComponentType<T>()) ^ std::numeric_limits<ComponentMask>::max();
 
-			entityManager->setComponentMask(entity, componentMask);
-			systemManager->onEntityComponentMaskChanged(entity, componentMask);
+			entityManager->setComponentMask(id, componentMask);
+			systemManager->onEntityComponentMaskChanged(id, componentMask);
 		}
 
 		template<typename T>
-		T& getComponent(EntityID entity)
+		T& getComponent(EntityID id)
 		{
-			return componentManager->getComponent<T>(entity);
+			return componentManager->getComponent<T>(id);
 		}
 
 		template<typename T>
-		bool hasComponent(EntityID entity)
+		bool hasComponent(EntityID id)
 		{
-			return componentManager->hasComponent<T>(entity);
+			return componentManager->hasComponent<T>(id);
 		}
 
 		template<typename T>
@@ -159,8 +159,8 @@ namespace kuai {
 		template<typename T>
 		Rc<T> registerSystem()
 		{
-			auto& sm = systemManager->RegisterSystem<T>();
-			sm->setECS(this); // :(
+			auto sm = systemManager->registerSystem<T>();
+			sm->ECS = this;
 			return sm;
 		}
 

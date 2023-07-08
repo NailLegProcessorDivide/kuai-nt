@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "glm/glm.hpp"
 #include "AudioSource.h"
 
 namespace kuai {
@@ -14,7 +13,7 @@ namespace kuai {
     {
     public:
         MusicSource();
-		virtual ~MusicSource();
+		virtual void cleanup() override;
         
 		virtual void play() override;
 		virtual void pause() override;
@@ -22,7 +21,7 @@ namespace kuai {
 
         virtual void setLoop(bool loop) override;
 
-		virtual void setAudioClip(std::shared_ptr<AudioClip> audioClip) override;
+		virtual void setAudioClip(Rc<AudioClip> audioClip) override;
 
 		virtual PlaybackState getStatus() const override;
 

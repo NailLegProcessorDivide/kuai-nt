@@ -70,21 +70,4 @@ namespace kuai {
 
 		friend class Model;
 	};
-
-	class SkyboxMaterial : public Material
-	{
-	public:
-		SkyboxMaterial(Rc<Cubemap> cubemap) : cubemap(cubemap)
-		{
-			shader = StaticShader::skybox;
-		}
-
-		virtual void bind(u32 offset)
-		{
-			cubemap->bind(0);
-		}
-
-	private:
-		Rc<Cubemap> cubemap;
-	};
 }

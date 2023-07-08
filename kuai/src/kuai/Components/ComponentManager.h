@@ -14,7 +14,7 @@ namespace kuai {
 	public:
 		virtual ~IComponentContainer() = default;
 
-		virtual void onEntityDestroyed(EntityID entity) = 0;
+		virtual void onEntityDestroyed(EntityID id) = 0;
 	};
 
 	template<typename T>
@@ -22,24 +22,24 @@ namespace kuai {
 	{
 	public:
 		template <typename ...Args>
-		void insert(EntityID entity, Box<T> component)
+		void insert(EntityID id, Box<T> component)
 		{
-			KU_CORE_ASSERT(entityToIndex.find(entity) == entityToIndex.end(), "Added duplicate component to entity");
+			KU_CORE_ASSERT(entityToIndex.find(id) == entityToIndex.end(), "Added duplicate component to entity");
 
-			entityToIndex[entity] = size;
-			indexToEntity[size] = entity;
+			entityToIndex[id] = size;
+			indexToEntity[size] = id;
 
 			components[size] = std::move(component);
 	
 			size++;
 		}
 
-		void remove(EntityID entity)
+		void remove(EntityID id)
 		{
-			KU_CORE_ASSERT(entityToIndex.find(entity) != entityToIndex.end(), "Removing component that does not exist");
+			KU_CORE_ASSERT(entityToIndex.find(id) != entityToIndex.end(), "Removing component that does not exist");
 
 			// Update mappings s.t. entity of last component in array points to removed index and vice-versa
-			size_t removeIndex = entityToIndex[entity];
+			size_t removeIndex = entityToIndex[id];
 			size_t lastElementIndex = size;
 
 			EntityID lastElementEntity = indexToEntity[lastElementIndex];
@@ -51,22 +51,22 @@ namespace kuai {
 
 			// Erase mappings of removed component and index of last component in the array
 			// The components array will remain tightly packed
-			entityToIndex.erase(entity);
+			entityToIndex.erase(id);
 			indexToEntity.erase(lastElementIndex);
 
 			lastElementIndex--;
 		}
 
-		T& get(EntityID entity)
+		T& get(EntityID id)
 		{
-			KU_CORE_ASSERT(entityToIndex.find(entity) != entityToIndex.end(), "Retrieving component that does not exist");
+			KU_CORE_ASSERT(entityToIndex.find(id) != entityToIndex.end(), "Retrieving component that does not exist");
 
-			return *(components[entityToIndex[entity]].get()); // Return reference to entity's component
+			return *(components[entityToIndex[id]].get()); // Return reference to entity's component
 		}
 
-		bool has(EntityID entity) const
+		bool has(EntityID id) const
 		{
-			return entityToIndex.find(entity) != entityToIndex.end();
+			return entityToIndex.find(id) != entityToIndex.end();
 		}
 
 		EntityID getEntityIDFromComponent(const T& component) const
@@ -81,12 +81,12 @@ namespace kuai {
 			return -1;
 		}
 
-		virtual void onEntityDestroyed(EntityID entity) override
+		virtual void onEntityDestroyed(EntityID id) override
 		{
 			// If entity owns this component type
-			if (entityToIndex.find(entity) != entityToIndex.end())
+			if (entityToIndex.find(id) != entityToIndex.end())
 			{
-				remove(entity);
+				remove(id);
 			}
 		}
 
@@ -114,34 +114,34 @@ namespace kuai {
 			KU_CORE_ASSERT(componentTypes.find(typeName) == componentTypes.end(), "Registering a component type more than once")
 
 			componentTypes.emplace(typeName, nextComponentType++);	// Increment for next component
-			componentContainers.emplace(typeName, MakeRc<ComponentContainer<T>>());
+			componentContainers.emplace(typeName, makeRc<ComponentContainer<T>>());
 		}
 
 		template<typename T, typename... Args>
-		void addComponent(EntityID entity, Args&&... args)
+		void addComponent(EntityID id, Args&&... args)
 		{
-			auto component = MakeBox<T>(args...);
+			auto component = makeBox<T>(args...);
 			component->cm = this;
-			component->id = entity;
-			getComponentContainer<T>()->insert(entity, std::move(component));
+			component->id = id;
+			getComponentContainer<T>()->insert(id, std::move(component));
 		}
 
 		template<typename T>
-		void removeComponent(EntityID entity)
+		void removeComponent(EntityID id)
 		{
-			getComponentContainer<T>()->remove(entity);
+			getComponentContainer<T>()->remove(id);
 		}
 		
 		template<typename T>
-		T& getComponent(EntityID entity)
+		T& getComponent(EntityID id)
 		{
-			return getComponentContainer<T>()->get(entity);
+			return getComponentContainer<T>()->get(id);
 		}
 
 		template<typename T>
-		bool hasComponent(EntityID entity)
+		bool hasComponent(EntityID id)
 		{
-			return getComponentContainer<T>()->has(entity);
+			return getComponentContainer<T>()->has(id);
 		}
 
 		template<typename T>
@@ -150,12 +150,12 @@ namespace kuai {
 			return componentTypes[typeid(T).name()];
 		}
 
-		void onEntityDestroyed(EntityID entity)
+		void onEntityDestroyed(EntityID id)
 		{
 			for (auto const& pair : componentContainers)
 			{
 				auto const& component = pair.second;
-				component->onEntityDestroyed(entity);
+				component->onEntityDestroyed(id);
 			}
 		}
 		

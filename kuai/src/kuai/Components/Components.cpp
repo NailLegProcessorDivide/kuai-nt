@@ -6,7 +6,6 @@
 #include "kuai/Renderer/Renderer.h"
 
 #include "kuai/Sound/AudioManager.h"
-#include "kuai/Sound/AudioSource.h"
 #include "kuai/Sound/MusicSource.h"
 
 namespace kuai {
@@ -26,44 +25,39 @@ namespace kuai {
 			// Renderer::updateShadowMap(getComponent<Light>());
 		}
 
-		if (hasComponent<AudioListener>())
+		if (hasComponent<Listener>())
 		{
-			getComponent<AudioListener>().update();
+			getComponent<Listener>().update();
 		}
 
-		if (hasComponent<AudioSourceComponent>())
+		if (hasComponent<SoundSource>())
 		{
-			getComponent<AudioSourceComponent>().update();
+			getComponent<SoundSource>().update();
 		}
 	}
 
-	float AudioListener::getGain() { return AudioManager::getGlobalGain(); }
-	void AudioListener::setGain(float gain) { AudioManager::setGlobalGain(gain); }
+	float Listener::getGain() { return AudioManager::getGlobalGain(); }
+	void Listener::setGain(float gain) { AudioManager::setGlobalGain(gain); }
 
-	void AudioListener::update()
+	void Listener::update()
 	{
 		AudioManager::setPos(getTransform().getPos());
 		AudioManager::setOrientation(getTransform().getForward(), getTransform().getUp());
 	}
 
-	AudioSourceComponent::AudioSourceComponent(bool stream)
+	SoundSource::SoundSource(bool stream)
 	{
 		source = AudioManager::createAudioSource(stream);
 	}
 
-	AudioSourceComponent::~AudioSourceComponent()
+	SoundSource::~SoundSource()
 	{
 		AudioManager::destroyAudioSource(source->getId());
 	}
 
-	void AudioSourceComponent::update()
+	void SoundSource::update()
 	{
 		source->setPos(getTransform().getPos());
 		source->setDir(getTransform().getForward());
-	}
-
-	Rc<AudioSource> AudioSourceComponent::get()
-	{
-		return source;
 	}
 }

@@ -5,11 +5,10 @@
 #include "MusicSource.h"
 
 namespace kuai {
-
 	ALCdevice* AudioManager::device = nullptr;
 	ALCcontext* AudioManager::context = nullptr;
 
-	std::unordered_map<u32, Rc<AudioSource>> AudioManager::sourceMap = std::unordered_map<u32, Rc<AudioSource>>();
+	std::unordered_map<u32, AudioSource*> AudioManager::sourceMap = std::unordered_map<u32, AudioSource*>();
 
 	void AudioManager::init()
 	{
@@ -37,6 +36,7 @@ namespace kuai {
 		{
 			auto& source = pair.second;
 			source->cleanup();
+			delete source;
 		}
 
 		sourceMap.clear();
@@ -51,13 +51,17 @@ namespace kuai {
 		alcCloseDevice(device);
 	}
 
-	Rc<AudioSource> AudioManager::createAudioSource(bool stream)
+	AudioSource* AudioManager::createAudioSource(bool stream)
 	{
-		Rc<AudioSource> source = nullptr;
+		AudioSource* source = nullptr;
 		if (stream)
-			source = MakeRc<MusicSource>();
+		{
+			source = new MusicSource();
+		}
 		else
-			source = MakeRc<AudioSource>();
+		{
+			source = new AudioSource();
+		}
 
 		sourceMap.emplace(source->getId(), source);
 

@@ -8,7 +8,7 @@ namespace kuai
 
 	namespace Key
 	{
-		enum Key : KeyCode // Enum needs name for Python bindings
+		enum : KeyCode
 		{
 			// From glfw3.h
 			Space = 32,

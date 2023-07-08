@@ -5,8 +5,6 @@
 
 namespace kuai {
 	Shader* StaticShader::basic = nullptr;
-	Shader* StaticShader::skybox = nullptr;
-	Shader* StaticShader::depth = nullptr;
 	
 	const char* DEFAULT_VERT = R"(
 		#version 450
@@ -20,17 +18,14 @@ namespace kuai {
 
 		layout (binding = 0) uniform CamData
 		{
-			mat4 projectionMatrix;
+			mat4 projMatrix;
 			mat4 viewMatrix;
 			vec3 viewPos;
 		};	
 
-		uniform mat4 lightSpaceMatrix; // TODO: change to layout, have an array of matrices to handle shadows from multiple lights
-
 		out vec4 worldPos;
 		out vec3 worldNorm;
 		out vec2 texCoords;
-		out vec4 lightSpace;		   // TODO: change to array
 		out vec3 viewingPos;
 
 		void main()
@@ -39,10 +34,9 @@ namespace kuai {
 			mat3 model3x3InvTransp = mat3(transpose(inverse(aModelMatrix))); // TODO: remove in favour of vertex attribute
 			worldNorm = model3x3InvTransp * aNormal;
 			texCoords = aTexCoord;
-			lightSpace = lightSpaceMatrix * worldPos;
 			viewingPos = viewPos;
 
-			gl_Position = projectionMatrix * viewMatrix * worldPos;
+			gl_Position = projMatrix * viewMatrix * worldPos;
 		}
 	)";
 
@@ -77,7 +71,6 @@ namespace kuai {
 		in vec4 worldPos;
 		in vec3 worldNorm;
 		in vec2 texCoords;
-		in vec4 lightSpace;		// TODO: change to array
 		in vec3 viewingPos;
 
 		struct Material
@@ -89,39 +82,6 @@ namespace kuai {
 			float shininess;
 		};
 		uniform	Material materials[10];
-
-		uniform sampler2D shadowMap;
-
-		float calcShadow(vec4 lightSpace, vec3 lightDir)
-		{
-			// Perform perspective divide and transform to NDC coords
-  			vec3 projCoords = lightSpace.xyz / lightSpace.w;
-			projCoords = projCoords * 0.5 + 0.5;		
-
-			float closestDepth = texture(shadowMap, projCoords.xy).r;
-			float currentDepth = projCoords.z;
-
-			// Add bias to remove shadow acne
-			float bias = max(0.05 * (1.0 - dot(worldNorm, lightDir)), 0.005);  
-
-			// Use PCF to sample current texel and 8 surrounding texels to create smoother shadows
-			float shadow = 0.0;
-			vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-			for(int x = -1; x <= 1; x++)
-			{
-				for(int y = -1; y <= 1; y++)
-				{
-					float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
-					shadow += currentDepth - bias > pcfDepth ? 0.75 : 0.0;        
-				}    
-			}
-			shadow /= 9.0;
-
-			if(projCoords.z > 1.0) // No shadows if fragment is past far plane
-        		shadow = 0.0;
-
-			return shadow;
-		}
 
 		void main()
 		{
@@ -171,31 +131,18 @@ namespace kuai {
 				vec3 halfwayDir = normalize(lightDir + viewDir);
 				float spec = pow(max(dot(norm, halfwayDir), 0.0), materials[0].shininess);
 				vec3 specular = lights[i].col * spec * vec3(texture(materials[0].specular, texCoords));
-
-				// Reflection Map
-				vec3 reflection = vec3(0.0);
-				if (materials[0].reflections)
-				{
-					reflection = vec3(texture(materials[0].reflectionMap, viewReflectDir));
-				}
-				
-				float shadow = 0.0;
-				if (lights[i].castsShadows)
-				{
-					shadow = calcShadow(lightSpace, lightDir);      
-				}
 				 
-				finalCol += (ambient + (1.0 - shadow) * (diffuse + specular + reflection)) * factor;
+				finalCol += (ambient + diffuse + specular) * factor;
 			}
 
-			fragCol = vec4(finalCol, 1.0);
+			fragCol = vec4(1.0, 0, 0, 1.0);
 		}
 	)";
 
 	DefaultShader::DefaultShader() : Shader(DEFAULT_VERT, DEFAULT_FRAG) 
 	{
-		Rc<VertexBuffer> vbo1 = MakeRc<VertexBuffer>(0);
-		Rc<VertexBuffer> vbo2 = MakeRc<VertexBuffer>(0);
+		Rc<VertexBuffer> vbo1 = makeRc<VertexBuffer>(0);
+		Rc<VertexBuffer> vbo2 = makeRc<VertexBuffer>(0);
 
 		vbo1->setLayout(
 		{ 
@@ -213,7 +160,7 @@ namespace kuai {
 
 		bind();
 
-		createUniformBlock("CamData", { "projectionMatrix", "viewMatrix", "viewPos" }, 0);
+		createUniformBlock("CamData", { "projMatrix", "viewMatrix", "viewPos" }, 0);
 		
 		std::vector<std::string> lightNames;
 		std::vector<const char*> lightNamesCStr;
@@ -227,7 +174,6 @@ namespace kuai {
 		 	lightNames.push_back("lights[" + std::to_string(i) + "].linear");
 		 	lightNames.push_back("lights[" + std::to_string(i) + "].quadratic");
 		 	lightNames.push_back("lights[" + std::to_string(i) + "].cutoff");
-			lightNames.push_back("lights[" + std::to_string(i) + "].castsShadows");
 		}
 		for (auto& name : lightNames)
 			lightNamesCStr.push_back(name.c_str());
@@ -249,128 +195,16 @@ namespace kuai {
 			setUniform("materials[" + std::to_string(i) + "].shininess", 20.0f);
 			setUniform("materials[" + std::to_string(i) + "].reflections", 0);
 		}
-
-		createUniform("lightSpaceMatrix");
-
-		createUniform("shadowMap");
-		setUniform("shadowMap", 31);
-	}
-
-	const char* SKYBOX_VERT = R"(
-		#version 450
-		layout (location = 0) in vec3 pos;
-
-		layout (binding = 0) uniform CamData
-		{
-			mat4 projectionMatrix;
-			mat4 viewMatrix;
-			vec3 viewPos;
-		};	
-
-		out vec3 texCoords;
-
-		void main()
-		{
-			texCoords = pos;
-			vec4 adjustedPos = projectionMatrix * mat4(mat3(viewMatrix)) * vec4(pos, 1.0);
-			gl_Position = adjustedPos.xyww;
-		}  
-	)";
-
-	const char* SKYBOX_FRAG = R"(
-		#version 450
-
-		in vec3 texCoords;
-
-		out vec4 fragCol;
-
-		uniform samplerCube skybox;
-
-		void main()
-		{    
-			fragCol = texture(skybox, texCoords);
-		}
-	)";
-
-	SkyboxShader::SkyboxShader() : Shader(SKYBOX_VERT, SKYBOX_FRAG)
-	{
-		Rc<VertexBuffer> vbo1 = MakeRc<VertexBuffer>(0);
-		Rc<VertexBuffer> vbo2 = MakeRc<VertexBuffer>(0);
-
-		vbo1->setLayout(
-		{ 
-			{ ShaderDataType::VEC3, "pos" },
-			{ ShaderDataType::VEC3, "normal" },
-			{ ShaderDataType::VEC2, "texCoord" },
-		});
-		vbo2->setLayout({ { ShaderDataType::MAT4, "modelMatrix" } });
-
-		vao->addVertexBuffer(vbo1);
-		vao->addVertexBuffer(vbo2);
-
-		bind();
-
-		createUniform("skybox");
-		setUniform("skybox", 0);
-	}
-
-	const char* DEPTH_VERT = R"(
-		#version 450
-		layout (location = 0) in vec3 pos;
-		layout (location = 3) in mat4 modelMatrix;
-
-		uniform mat4 lightSpaceMatrix;
-
-		void main()
-		{
-			gl_Position = lightSpaceMatrix * modelMatrix * vec4(pos, 1.0);
-		}
-	)";
-
-	const char* DEPTH_FRAG = R"(
-		#version 450
-		// out float fragDepth;
-		void main()
-		{
-			// fragDepth = gl_FragCoord.z; (Handled by OpenGL)
-		}
-	)";
-
-	DepthShader::DepthShader() : Shader(DEPTH_VERT, DEPTH_FRAG)
-	{
-		Rc<VertexBuffer> vbo1 = MakeRc<VertexBuffer>(0);
-		Rc<VertexBuffer> vbo2 = MakeRc<VertexBuffer>(0);
-
-		vbo1->setLayout(
-		{ 
-			{ ShaderDataType::VEC3, "pos" },
-			{ ShaderDataType::VEC3, "normal" },
-			{ ShaderDataType::VEC2, "texCoord" },
-		});
-		vbo2->setLayout(
-		{ 
-			{ ShaderDataType::MAT4, "modelMatrix" },
-		});
-
-		vao->addVertexBuffer(vbo1);
-		vao->addVertexBuffer(vbo2);
-
-		createUniform("lightSpaceMatrix");
-
-		bind();
 	}
 
 	void StaticShader::init()
 	{
 		basic = new DefaultShader();
-		skybox = new SkyboxShader();
-		depth = new DepthShader();
 	}
 
 	void StaticShader::cleanup()
 	{
 		//delete basic;
-		//delete skybox;
 	}
 }
 

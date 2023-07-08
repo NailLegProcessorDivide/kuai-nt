@@ -6,6 +6,7 @@
 #include <utility>
 #include <algorithm>
 #include <functional>
+#include <optional>
 
 #include <string>
 #include <sstream>
@@ -16,6 +17,6 @@
 #include "kuai/Core/Log.h"
 #include "kuai/Util/Instrumentor.h"
 
-#ifdef SM_PLATFORM_WINDOWS
+#ifdef KU_PLATFORM_WINDOWS
 	#include <Windows.h>
 #endif
