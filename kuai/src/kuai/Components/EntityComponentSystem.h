@@ -14,9 +14,9 @@ namespace kuai {
 	class IFnHandler
 	{
 	public:
-		void exec(Event* event) { call(event); }
+		void exec(Event& event) { call(event); }
 	private:
-		virtual void call(Event* event) = 0;
+		virtual void call(Event& event) = 0;
 	};
 	
 	// Class to hold reference to member function and offset of method to be called
@@ -24,14 +24,14 @@ namespace kuai {
 	class FnHandler : public IFnHandler
 	{
 	public:
-		typedef void (T::* MemberFn)(EventType*);
+		typedef void (T::* MemberFn)(EventType&);
 
 		FnHandler(T* instance, MemberFn memberFn) : instance{ instance }, memberFn{ memberFn } {}
 
-		void call(Event* event)
+		void call(Event& event)
 		{
 			// Cast event to the correct type and call member function
-			(instance->*memberFn)(static_cast<EventType*>(event));
+			(instance->*memberFn)(*(EventType*)(&event));
 		}
 	private:
 		T* instance; // Pointer to instance class
@@ -45,7 +45,7 @@ namespace kuai {
 	{
 	public:
 		template<typename EventType>
-		void notify(EventType* event)
+		void notify(EventType& event)
 		{
 			HandlerList* handlers = subscribers[typeid(EventType).name()];
 			
@@ -62,7 +62,7 @@ namespace kuai {
 		}
 
 		template<typename T, typename EventType>
-		void subscribe(T* instance, void (T::*memberFn)(EventType*))
+		void subscribe(T* instance, void (T::*memberFn)(EventType&))
 		{
 			HandlerList* handlers = subscribers[typeid(EventType).name()];
 
@@ -161,6 +161,7 @@ namespace kuai {
 		{
 			auto sm = systemManager->registerSystem<T>();
 			sm->ECS = this;
+			sm->init();
 			return sm;
 		}
 
@@ -173,13 +174,13 @@ namespace kuai {
 		// *** Event Management (of systems) **********************************
 
 		template<typename EventType>
-		void notifySystems(EventType* event)
+		void notifySystems(EventType& event)
 		{
 			eventBus->notify(event);
 		}
 
 		template<typename T, typename EventType>
-		void subscribeSystem(T* instance, void (T::* memberFn)(EventType*))
+		void subscribeSystem(T* instance, void (T::* memberFn)(EventType&))
 		{
 			eventBus->subscribe(instance, memberFn);
 		}

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "StaticShader.h"
+#include "Shader.h"
 #include "Texture.h"
 #include "Cubemap.h"
 
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
 #include <memory>
 
 namespace kuai {
@@ -14,7 +14,7 @@ namespace kuai {
 	class Material
 	{
 	public:
-		Material() { materialId = materialCounter++; }
+		Material() = default;
 
 		virtual void bind(u32 offset) = 0;
 
@@ -23,49 +23,34 @@ namespace kuai {
 
 	protected:
 		Shader* shader = nullptr;
-
-		u32 materialId;
-	private:
-		static u32 materialCounter;
 	};
 
 	class DefaultMaterial : public Material
 	{
 	public:
-		DefaultMaterial(Rc<Texture> diffuse, Rc<Texture> specular, float specularAmount)
-			: diffuse(diffuse), specular(specular), specularAmount(specularAmount), reflections(false)
+		DefaultMaterial(Rc<Texture> diffuse) : diffuse(diffuse)
 		{
-			shader = StaticShader::basic;
+			shader = Shader::base;
+		}
+
+		DefaultMaterial() : diffuse(new Texture())
+		{
+			shader = Shader::base;
 		}
 
 		virtual void bind(u32 offset)
 		{
 			diffuse->bind(offset);
-			specular->bind(offset + 1);
-			if (reflectionMap)
-				reflectionMap->bind(offset + 2);
 		}
 
 		void setDiffuse(Rc<Texture> diffuse) { this->diffuse = diffuse; }
-		void setSpecular(Rc<Texture> specular) { this->specular = specular; }
-		void setReflection(Rc<Cubemap> reflection) { this->reflectionMap = reflection; reflections = true; }
-
-		float getSpecularAmount() const { return specularAmount; }
-		void setSpecularAmount(float amount) { specularAmount = amount; }
-
-		bool hasReflections() const { return reflections; }
-		void setReflections(bool reflections) { this->reflections = reflections; }
 
 		glm::vec2 getTiling() const { return tilingFactor; }
 		void setTiling(float x, float y) { tilingFactor = glm::vec2(x, y); }
 
 	private:
 		Rc<Texture> diffuse;
-		Rc<Texture> specular;
-		Rc<Cubemap> reflectionMap;
 
-		float specularAmount;
-		bool reflections;
 		glm::vec2 tilingFactor = { 1.0f, 1.0f };
 
 		friend class Model;

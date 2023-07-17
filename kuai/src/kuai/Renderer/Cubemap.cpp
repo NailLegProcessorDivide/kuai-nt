@@ -59,12 +59,12 @@ namespace kuai {
 		glDeleteTextures(1, &textureId);
 	}
 
-	uint32_t Cubemap::getId()
+	u32 Cubemap::getId()
 	{
 		return textureId;
 	}
 	
-	void Cubemap::bind(uint32_t activeTex)
+	void Cubemap::bind(u32 activeTex)
 	{
 		glActiveTexture(GL_TEXTURE0 + activeTex);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, textureId);

@@ -27,7 +27,7 @@ namespace kuai {
 
 	private:
 		void stream();
-		bool fillAndPushBuf(uint32_t bufNo);
+		bool fillAndPushBuf(u32 bufNo);
 
 		void awaitThread();
         

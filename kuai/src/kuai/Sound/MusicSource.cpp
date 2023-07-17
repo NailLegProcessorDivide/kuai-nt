@@ -151,7 +151,7 @@ namespace kuai {
 				ALuint buf;
 				alCheck(alSourceUnqueueBuffers(sourceId, 1, &buf));
 
-				uint32_t bufNo;
+				u32 bufNo;
 				for (int i = 0; i < BUF_COUNT; i++)
 				{
 					if (buffers[i] == buf)
@@ -184,7 +184,7 @@ namespace kuai {
 			alCheck(alSourceUnqueueBuffers(sourceId, 1, &buf));
 	}
 
-	bool MusicSource::fillAndPushBuf(uint32_t bufNo)
+	bool MusicSource::fillAndPushBuf(u32 bufNo)
 	{
 		bool requestStop = false;
 
@@ -196,7 +196,7 @@ namespace kuai {
 			requestStop = true;
 
 		// Fill buffer
-		uint32_t buf = buffers[bufNo];
+		u32 buf = buffers[bufNo];
 		alCheck(alBufferData(buf, audioClip->getFormat(), &data[0], amount * sizeof(short), audioClip->getSamplerate()));
 	
 		// Push it to queue

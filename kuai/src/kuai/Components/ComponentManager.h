@@ -6,7 +6,7 @@
 
 // @cond
 namespace kuai {
-	using ComponentType = uint8_t;
+	using ComponentType = u8;
 
 	class ComponentManager;
 	class IComponentContainer

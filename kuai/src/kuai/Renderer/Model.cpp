@@ -22,17 +22,18 @@ namespace kuai {
 		processNode(scene->mRootNode, scene);
 	}
 
-	Model::Model(const Rc<Mesh>& mesh, const Rc<Material>& material)
+	Model::Model(Rc<Mesh> mesh, Rc<Material> material)
 	{
 		meshes.push_back(mesh);
-		if (!material)
+		if (material)
 		{
-			// Default material
-			Rc<Texture> tex = makeRc<Texture>();
-			materials.push_back(makeRc<DefaultMaterial>(tex, tex, 10.0f));
+			materials.push_back(material);
 		}
 		else
-			materials.push_back(material);
+		{
+			// Default material
+			materials.push_back(makeRc<DefaultMaterial>());
+		}
 	}
 
 	void Model::processNode(aiNode* node, const aiScene* scene)
@@ -53,7 +54,7 @@ namespace kuai {
 	{
 		std::vector<Vertex> vertexData(mesh->mNumVertices);
 		std::vector<u32> indices;
-		std::vector<Texture*> textures;
+		std::vector<Texture> textures;
 
 		for (int i = 0; i < mesh->mNumVertices; i++)
 		{
@@ -77,7 +78,9 @@ namespace kuai {
 		{
 			aiFace face = mesh->mFaces[i];
 			for (size_t j = 0; j < face.mNumIndices; j++)
+			{
 				indices.push_back(face.mIndices[j]);
+			}
 		}
 
 		// Material
@@ -85,27 +88,27 @@ namespace kuai {
 		{
 			aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-			std::vector<Texture*> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
+			std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE);
 			textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-			std::vector<Texture*> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
+			std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR);
 			textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
 			// TODO: normal maps and height maps
-			if (textures.size() > 1)
+			if (textures.size() >= 1)
 			{
-				materials.push_back(makeRc<DefaultMaterial>(makeRc<Texture>(*textures[0]), makeRc<Texture>(*textures[1]), 20.0f));
+				materials.push_back(makeRc<DefaultMaterial>(makeRc<Texture>(textures[0])));
 				return makeRc<Mesh>(vertexData, indices);
 			}
 		}
 
-		materials.push_back(makeRc<DefaultMaterial>(makeRc<Texture>(), makeRc<Texture>(), 20.0f));
+		materials.push_back(makeRc<DefaultMaterial>());
 		return makeRc<Mesh>(vertexData, indices);
 	}
 
-	std::vector<Texture*> Model::loadMaterialTextures(aiMaterial* mat, uint64_t type)
+	std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, uint64_t type)
 	{
-		std::vector<Texture*> textures;
+		std::vector<Texture> textures;
 
 		for (size_t i = 0; i < mat->GetTextureCount((aiTextureType)type); i++)
 		{
@@ -119,9 +122,8 @@ namespace kuai {
 			}
 			else
 			{
-				Texture* tex = new Texture(filename);
-				textures.push_back(tex);
-				loadedTexMap.insert(std::pair<std::string, Texture*>(filename, tex));
+				textures.push_back(Texture(filename));
+				loadedTexMap.insert(std::make_pair(filename, textures.back()));
 			}
 		}
 

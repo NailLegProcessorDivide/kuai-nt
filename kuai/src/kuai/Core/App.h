@@ -7,10 +7,12 @@
 #include "Window.h"
 #include "Timer.h"
 
-#include "kuai/Components/EntityComponentSystem.h"
 #include "kuai/Components/Entity.h"
 
 namespace kuai {
+	// Forward declaration
+	class EntityComponentSystem;
+
 	/** \class App
 	*   \brief This class runs your game. It handles windowing, events and updates.
 	*	@see Layer
@@ -33,7 +35,7 @@ namespace kuai {
 		/**
 		* Called every time an event occurs.
 		*/
-		virtual void onEvent(Event* e) {}
+		virtual void onEvent(Event& e) {}
 
 		void addWindow(const WindowProps& props);
 
@@ -53,39 +55,21 @@ namespace kuai {
 
 		Entity createEntity() { return Entity(ECS); }
 
-		std::optional<Entity> getEntityById(EntityID id)
-		{ 
-			if (ECS->hasComponent<Transform>(id)) // Every entity has a transform
-			{
-				return Entity(ECS, id);
-			}
-			return {};
-		}
+		std::optional<Entity> getEntityById(EntityID id);
 
 		//Entity getEntityByName(std::string& name) {}
 		
-		void destroyEntity(Entity entity) 
-		{ 
-			if (ECS->hasComponent<Transform>(entity.getId()))
-			{
-				ECS->destroyEntity(entity.getId());
-			}
-		}
+		void destroyEntity(Entity entity);
 
 		Entity* getMainCam() { return mainCam.get(); }
 
-		void setMainCam(Cam& cam)
-		{
-			mainCam->getComponent<Cam>().isMain = false;
-			mainCam->getComponent<Cam>() = cam;
-			mainCam->getComponent<Cam>().isMain = true;
-		}
+		void setMainCam(Entity& camEntity);
 
 	private:
 		/**
 		* Called every time an event occurs; private callback for parent class only.
 		*/
-		void onEventP(Event* e);
+		void onEventP(Event& e);
 
 		bool onWindowClose(WindowCloseEvent& e);
 		bool onWindowResize(WindowResizeEvent& e);
@@ -99,9 +83,11 @@ namespace kuai {
 
 		EntityComponentSystem* ECS;
 
+		Rc<System> cameraSys;
 		Rc<System> renderSys;
+		Rc<System> lightSys;
 
-		Rc<Entity> mainCam;
+		Box<Entity> mainCam;
 
 		static App* instance;
 	};

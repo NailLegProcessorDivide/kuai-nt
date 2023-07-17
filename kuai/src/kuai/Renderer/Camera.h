@@ -58,8 +58,8 @@ namespace kuai {
 		    viewMatrix = glm::inverse(viewMatrix); // Calculate inverse to get correct operation, aka (TR)^-1 = R^-1T^-1
         }
 
-		void setTarget(Rc<Framebuffer> target) { this->target = target; }
-		Rc<Framebuffer> getTarget() { return target; }
+		void setTarget(Framebuffer& target) { this->target = makeBox<Framebuffer>(target); }
+		Framebuffer* getTarget() { return target.get(); }
 
 	private:
 		void updateProjectionMatrix()
@@ -95,6 +95,6 @@ namespace kuai {
 		glm::mat4 viewProjMatrix;
 
 		// Framebuffer this camera will render to; none is default framebuffer
-		Rc<Framebuffer> target = nullptr;
+		Box<Framebuffer> target = nullptr;
     };
 }

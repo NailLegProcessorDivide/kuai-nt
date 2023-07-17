@@ -13,7 +13,7 @@ namespace kuai {
 		
 		static void setCamera(Camera& camera);
 
-		static void render(Shader* shader);
+		static void render(Shader& shader);
 
 		static void setViewport(u32 x, u32 y, u32 width, u32 height);
 		static void setClearCol(const glm::vec4& col);

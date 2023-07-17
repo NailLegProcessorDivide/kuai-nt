@@ -5,13 +5,15 @@ namespace kuai {
 	class EntityComponentSystem; 
 	class Entity;
 
-	using EntityID = uint32_t;
+	using EntityID = u32;
 	/**
 	* Defines the game logic for a set of entities
 	*/
 	class System
 	{
 	public:
+		virtual void init() {}
+
 		virtual void update(float dt) = 0;
 
 		virtual void insertEntity(EntityID id);

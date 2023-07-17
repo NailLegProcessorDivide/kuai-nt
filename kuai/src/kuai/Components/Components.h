@@ -1,8 +1,5 @@
 #pragma once
 
-#include "glm/glm.hpp"
-#include "glm/gtx/quaternion.hpp"
-
 #include "ComponentManager.h"
 
 #include "kuai/Core/Core.h"
@@ -14,9 +11,11 @@
 #include "kuai/Renderer/Camera.h"
 
 #include "kuai/Sound/AudioClip.h"
-#include "kuai/Sound/AudioSource.h"
 
 #include "kuai/Events/Event.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace kuai {
 	// Forward Declaration
@@ -28,7 +27,7 @@ namespace kuai {
 		Component() = default;
 
 		template<typename T>
-		bool hasComponent() { return cm->hasComponent<T>(id); };
+		bool hasComponent() { return cm->hasComponent<T>(id); }
 
 		template<typename T>
 		T& getComponent() { return cm->getComponent<T>(id); }
@@ -36,7 +35,7 @@ namespace kuai {
 		Transform& getTransform() { return cm->getComponent<Transform>(id); }
 
 	private:
-		ComponentManager* cm; // :(
+		ComponentManager* cm;
 		EntityID id;
 
 		friend ComponentManager;
@@ -56,63 +55,34 @@ namespace kuai {
 		Transform() = default;
 		Transform(const glm::vec3& pos) : pos(pos) {}
 
-		glm::vec3& getPos() { return pos; }
-		void setPos(const glm::vec3& pos)
-		{
-			this->pos = pos;
-			updateComponents();
-			calcModelMatrix();
-		}
-		void setPos(float x, float y, float z) { setPos({ x, y, z }); }
+		glm::vec3 getPos() const;
+		void setPos(const glm::vec3& pos);
+		void setPos(float x, float y, float z);
 
-		void translate(const glm::vec3& amount)
-		{
-			this->pos += amount;
-			updateComponents();
-			calcModelMatrix();
-		}
-		void translate(float x, float y, float z) { translate({ x, y, z }); }
+		void translate(const glm::vec3& amount);
+		void translate(float x, float y, float z);
 
-		glm::vec3 getRot() { return glm::degrees(rot); }
-		void setRot(const glm::vec3& rot)
-		{
-			this->rot = glm::radians(rot);
-			updateComponents();
-			calcModelMatrix();
-		}
-		void setRot(float x, float y, float z) { setRot({ x, y, z }); }
+		glm::vec3 getRot() const;
+		void setRot(const glm::vec3& rot);
+		void setRot(float x, float y, float z);
 
-		void rotate(const glm::vec3& amount)
-		{
-			this->rot += glm::radians(amount);
-			updateComponents();
-			calcModelMatrix();
-		}
-		void rotate(float x, float y, float z) { rotate({ x, y, z }); }
+		void rotate(const glm::vec3& amount);
+		void rotate(float x, float y, float z);
 
-		glm::vec3 getScale() { return scale; }
-		void setScale(const glm::vec3& scale)
-		{
-			this->scale = scale;
-			calcModelMatrix();
-		}
-		void setScale(float x, float y, float z) { setScale({ x, y, z }); }
+		glm::vec3 getScale() const;
+		void setScale(const glm::vec3& scale);
+		void setScale(float x, float y, float z);
 
-		glm::vec3 getUp() { return glm::rotate(glm::quat(rot), glm::vec3(0.0f, 1.0f, 0.0f)); }
-		glm::vec3 getRight() { return glm::rotate(glm::quat(rot), glm::vec3(1.0f, 0.0f, 0.0f)); }
-		glm::vec3 getForward() { return glm::rotate(glm::quat(rot), glm::vec3(0.0f, 0.0f, -1.0f)); }
+		glm::vec3 getUp() const;
+		glm::vec3 getRight() const;
+		glm::vec3 getForward() const;
 
-		glm::mat4 getModelMatrix() { return modelMatrix; }
+		glm::mat4 getModelMatrix() const;
 
 	private:
 		void updateComponents();
 
-		void calcModelMatrix()
-		{
-			modelMatrix = glm::translate(glm::mat4(1.0f), pos) *
-				glm::toMat4(glm::quat(rot)) *
-				glm::scale(glm::mat4(1.0f), scale);
-		}
+		void calcModelMatrix();
 
 		glm::vec3 pos = { 0.0f, 0.0f, 0.0f };
 		glm::vec3 rot = { 0.0f, 0.0f, 0.0f };
@@ -141,17 +111,17 @@ namespace kuai {
 	public:
 		BoxCollider2D() = default;
 
-		glm::vec2 getSize() { return size; }
-		void setSize(float x, float y) { size = glm::vec2(x, y); }
+		glm::vec2 getSize() const;
+		void setSize(float x, float y);
 
-		glm::vec2 getOffset() { return offset; }
-		void setOffset(float x, float y) { offset = glm::vec2(x, y); }
+		glm::vec2 getOffset() const;
+		void setOffset(float x, float y);
 
-		float getRestitution() { return restitution; }
-		void setSize(float restitution) { this->restitution = restitution; }
+		float getRestitution() const;
+		void setSize(float restitution);
 
-		float getFriction() { return friction; }
-		void setFriction(float friction) { this->friction = friction; }
+		float getFriction() const;
+		void setFriction(float friction);
 
 	private:
 		glm::vec2 size = { 0.5f, 0.5f };
@@ -189,6 +159,18 @@ namespace kuai {
 		bool shadows = true;
 	};
 
+	class SpriteRenderer : public Component
+	{
+	public:
+		SpriteRenderer()
+		{
+
+		}
+
+	private:
+
+	};
+
 	/** \class Camera
 	*	\brief Device through which the user views the world.
 	*/
@@ -196,9 +178,7 @@ namespace kuai {
 	{
 	public:
 		Cam(float fov, float aspect, float zNear, float zFar) 
-			: Camera(fov, aspect, zNear, zFar)
-		{ 
-		}
+			: Camera(fov, aspect, zNear, zFar) {}
 
 		bool isMain = false; // Indicates whether this is the main camera (i.e. the camera that renders to the window)
 	};
@@ -212,54 +192,48 @@ namespace kuai {
 	class Light : public Component
 	{
 	public:
-		Light() : lightId(lightCount++)
+		enum class LightType
 		{
-			calcLightSpaceMatrix();
-		}
+			Directional = 0,
+			Point = 1,
+			Spot = 2
+		};
 
-		glm::vec3 getCol() { return col; }
-		void setCol(const glm::vec3& col) { this->col = col; }
-		void setCol(float x, float y, float z) { setCol({ x, y, z }); }
+		Light() = default;
 
-		float getIntensity() { return intensity; }
-		void setIntensity(float intensity) { this->intensity = intensity; }
+		LightType getType() const;
+		void setType(LightType type);
 
-		float getLinear() { return linear; }
-		float getQuadratic() { return quadratic; }
-		void setAttenuation(float linear, float quadratic) { this->linear = linear; this->quadratic = quadratic; }
+		glm::vec3 getCol() const;
+		void setCol(const glm::vec3& col);
+		void setCol(float x, float y, float z);
 
-		float getAngle() { return angle; }
-		void setAngle(float angle) { this->angle = angle; }
+		float getIntensity() const;
+		void setIntensity(float intensity);
 
-		void setShadows(bool enabled) { shadows = enabled; }
-		bool castsShadows() { return shadows; }
+		float getLinear() const;
+		float getQuadratic() const;
+		void setAttenuation(float linear, float quadratic);
 
-		uint32_t getId() { return lightId; }
-
-	public: // TODO: Should not be public, use friend class
-		glm::mat4& getLightSpaceMatrix() { return lightSpaceMatrix; }
-		void calcLightSpaceMatrix() { /*lightSpaceMatrix = shadowCam.getProjectionMatrix() * shadowCam.getViewMatrix(); */ }
+		float getAngle() const;
+		void setAngle(float angle);
 
 	private:
-		uint32_t lightId = 0;
+		LightType type = LightType::Point;
 
 		glm::vec3 col = { 1.0f, 1.0f, 1.0f };
 		float intensity = 1;
 
-		// Attenuation values
+		// Only used for point light and spot light (attenuation values)
 		float linear = 0.1f;
 		float quadratic = 0.025f;
 
-		float angle = 0.0f;
-
-		bool shadows = false;
-		glm::mat4 lightSpaceMatrix;
-
-	private:
-		static uint32_t lightCount;
+		// Only used for spot light
+		float angle = 30;
 
 		friend class Transform;
 	};
+
 
 	/** \class Listener
 	*	\brief Acts like a microphone; plays back sounds in a scene. Only one Listener is permitted per scene.
@@ -267,7 +241,7 @@ namespace kuai {
 	class Listener : public Component
 	{
 	public:
-		Listener() {}
+		Listener() = default;
 
 		float getGain();
 		void setGain(float gain);
@@ -278,7 +252,10 @@ namespace kuai {
 		friend class Transform;
 	};
 
-	/** \class AudioSourceComponent
+	// Forward declaration
+	class AudioSource;
+
+	/** \class SoundSource
 	*	\brief Acts like a speaker; generates sounds in a scene. Must be provided with an AudioClip to play.
 	*/
 	class SoundSource : public Component
@@ -288,26 +265,26 @@ namespace kuai {
 		SoundSource(const SoundSource&) = delete;
 		~SoundSource();
 
-		void play() { source->play(); }
-		void pause() { source->pause(); }
-		void stop() { source->stop(); }
+		void play();
+		void pause();
+		void stop();
 
-		void setAudioClip(Rc<AudioClip> audioClip) { source->setAudioClip(audioClip); }
+		void setAudioClip(Rc<AudioClip> audioClip);
 
-		float getPitch() const { return source->getPitch(); }
-		void setPitch(float pitch) { source->setPitch(pitch); }
+		float getPitch() const;
+		void setPitch(float pitch);
 
-		float getGain() const { return source->getGain(); }
-		void setGain(float gain) { source->setGain(gain); }
+		float getGain() const;
+		void setGain(float gain);
 
-		float getRolloff() const { return source->getRolloff(); }
-		void setRolloff(float rolloff) { source->setRolloff(rolloff); }
+		float getRolloff() const;
+		void setRolloff(float rolloff);
 
-		float getRefDist() const { return source->getRefDist(); }
-		void setRefDist(float refDist) { source->setRefDist(refDist); }
+		float getRefDist() const;
+		void setRefDist(float refDist);
 
-		bool isLoop() const { return source->isLoop(); }
-		void setLoop(bool loop) { source->setLoop(loop); }
+		bool isLoop() const;
+		void setLoop(bool loop);
 
 	private:
 		void update();

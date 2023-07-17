@@ -16,6 +16,7 @@ add_library(${PROJECT_NAME}
     src/kuai/Components/ComponentManager.h
     src/kuai/Components/Components.h
     src/kuai/Components/Components.cpp
+    src/kuai/Components/CoreSystems.h
     src/kuai/Components/Entity.h
     src/kuai/Components/EntityComponentSystem.h
     src/kuai/Components/EntityManager.h
@@ -31,7 +32,6 @@ add_library(${PROJECT_NAME}
     src/kuai/Core/Log.h
     src/kuai/Core/Log.cpp
     src/kuai/Core/MouseBtnCodes.h
-    src/kuai/Core/Systems.h
     src/kuai/Core/Timer.h
     src/kuai/Core/Window.h
 
@@ -53,7 +53,7 @@ add_library(${PROJECT_NAME}
     src/kuai/Renderer/Framebuffer.cpp
     src/kuai/Renderer/Geometry.h
     src/kuai/Renderer/Material.h
-    src/kuai/Renderer/Material.cpp
+    
     src/kuai/Renderer/Mesh.h
     src/kuai/Renderer/Mesh.cpp
     src/kuai/Renderer/Model.h
@@ -62,8 +62,6 @@ add_library(${PROJECT_NAME}
     src/kuai/Renderer/Renderer.cpp
     src/kuai/Renderer/Shader.h
     src/kuai/Renderer/Shader.cpp
-    src/kuai/Renderer/StaticShader.h
-    src/kuai/Renderer/StaticShader.cpp
     src/kuai/Renderer/Texture.h
     src/kuai/Renderer/Texture.cpp
     src/kuai/Renderer/TextureArray.h
@@ -80,6 +78,8 @@ add_library(${PROJECT_NAME}
 
     vendor/stb_image/stb_image.h
     vendor/stb_image/stb_image.cpp
+    vendor/stb_image/stb_image_resize.h 
+    vendor/stb_image/stb_image_resize.cpp
 )
 find_package(OpenGL REQUIRED)
 set(MY_LIBS

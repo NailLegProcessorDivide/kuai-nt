@@ -25,7 +25,7 @@ namespace kuai {
 		/**
 		* Create model by specifying a singlular mesh and (optional) material.
 		*/
-		Model(const Rc<Mesh>& mesh, const Rc<Material>& material = nullptr);
+		Model(Rc<Mesh> mesh, Rc<Material> = nullptr);
 
 		/**
 		* Returns reference to list of meshes this model is made of.
@@ -37,16 +37,18 @@ namespace kuai {
 		*/
 		std::vector<Rc<Material>>& getMaterials() { return materials; }
 
+		void setMaterial(Rc<Material> material, u32 index) { materials[index] = material; }
+
 	private:
 		void processNode(aiNode* node, const aiScene* scene);
 		Rc<Mesh> processMesh(aiMesh* mesh, const aiScene* scene);
-		std::vector<Texture*> loadMaterialTextures(aiMaterial* mat, uint64_t type);
+		std::vector<Texture> loadMaterialTextures(aiMaterial* mat, uint64_t type);
 
 	private:
 		std::vector<Rc<Mesh>> meshes;
 		std::vector<Rc<Material>> materials;
 
 		std::string directory;
-		std::unordered_map<std::string, Texture*> loadedTexMap;
+		std::unordered_map<std::string, Texture> loadedTexMap;
 	};
 }

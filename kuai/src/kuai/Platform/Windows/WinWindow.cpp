@@ -70,7 +70,7 @@ namespace kuai {
 			data.height = height;
 
 			WindowResizeEvent event(width, height); 
-			data.eventCallback(&event); // Dispatch event
+			data.eventCallback(event); // Dispatch event
 		});
 
 		glfwSetWindowPosCallback(window, [](GLFWwindow* window, int xPos, int yPos)
@@ -79,15 +79,15 @@ namespace kuai {
 			data.screenX = xPos;
 			data.screenY = yPos;
 
-			WindowResizeEvent event(xPos, yPos);
-			data.eventCallback(&event); // Dispatch event
+			// WindowResizeEvent event(xPos, yPos); TODO: create a window moved event
+			// data.eventCallback(event); // Dispatch event
 		});
 
 		glfwSetWindowCloseCallback(window, [](GLFWwindow* window)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			WindowCloseEvent event;
-			data.eventCallback(&event);
+			data.eventCallback(event);
 		});
 
 		glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -99,19 +99,19 @@ namespace kuai {
 				case GLFW_PRESS:
 				{
 					KeyPressEvent event(key, 0);
-					data.eventCallback(&event);
+					data.eventCallback(event);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
 					KeyReleaseEvent event(key);
-					data.eventCallback(&event);
+					data.eventCallback(event);
 					break;
 				}
 				case GLFW_REPEAT:
 				{
 					KeyPressEvent event(key, 1);
-					data.eventCallback(&event);
+					data.eventCallback(event);
 					break;
 				}
 			}
@@ -126,13 +126,13 @@ namespace kuai {
 				case GLFW_PRESS:
 				{
 					MouseBtnPressEvent event(button);
-					data.eventCallback(&event);
+					data.eventCallback(event);
 					break;
 				}
 				case GLFW_RELEASE:
 				{
 					MouseBtnReleaseEvent event(button);
-					data.eventCallback(&event);
+					data.eventCallback(event);
 					break;
 				}
 			}
@@ -142,14 +142,14 @@ namespace kuai {
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			MouseScrollEvent event((float)xoff, (float)yoff);
-			data.eventCallback(&event);
+			data.eventCallback(event);
 		});
 
 		glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xpos, double ypos)
 		{
 			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 			MouseMoveEvent event((float)xpos, (float)ypos);
-			data.eventCallback(&event);
+			data.eventCallback(event);
 		});
 
 		glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focus)

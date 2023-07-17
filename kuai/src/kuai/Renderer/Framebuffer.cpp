@@ -35,7 +35,7 @@ namespace kuai {
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, frameBufId);
 		glBindTexture(getTextureTarget(props.samples > 1), depthAttachment);
-		// glViewport(0, 0, props.width, props.height);
+		glViewport(0, 0, props.width, props.height);
 	}
 
 	void Framebuffer::unbind()

@@ -1,12 +1,24 @@
 #pragma once
 
-#include "kuai/Components/System.h"
+#include "System.h"
 
 namespace kuai {
+
+	class RenderEvent : public Event
+	{
+	public:
+		EVENT_CLASS_TYPE(EventType::RenderEvent)
+		EVENT_CLASS_CATEGORY(SystemEventCategory)
+	};
 
 	class RenderSystem : public System
 	{
 	public:
+		void init()
+		{
+			ECS->subscribeSystem(this, &RenderSystem::renderCallback);
+		}
+
 		void update(float dt)
 		{
 			// Update model matrices every frame
@@ -20,8 +32,6 @@ namespace kuai {
 				}
 				shaderToModelMatrices[pair.first] = modelMatrices;
 			}
-
-			render();
 		}
 
 		void insertEntity(EntityID id) override
@@ -168,30 +178,6 @@ namespace kuai {
 
 		void render()
 		{
-			// ---- SHADOWS ----
-			//if (scene->getMainLight().castsShadows())
-			//{
-			//	auto& basicShaderVertexData = shaderToVertexData[StaticShader::basic];
-			//	auto& basicShaderIndices = shaderToIndices[StaticShader::basic];
-			//	auto& basicShaderModelMatrices = shaderToModelMatrices[StaticShader::basic];
-
-			//	StaticShader::depth->bind();
-
-			//	StaticShader::depth->getVertexArray()->getVertexBuffers()[0]->reset(basicShaderVertexData.data(), basicShaderVertexData.size() * sizeof(Vertex));
-			//	StaticShader::depth->getVertexArray()->setIndexBuffer(MakeRc<IndexBuffer>(basicShaderIndices.data(), basicShaderIndices.size()));
-			//	StaticShader::depth->getVertexArray()->getVertexBuffers()[1]->reset(basicShaderModelMatrices.data(), basicShaderModelMatrices.size() * sizeof(glm::mat4));
-
-			//	std::vector<IndirectCommand> commands;
-			//	for (auto& pair : shaderToMeshCommand[StaticShader::basic])
-			//		commands.push_back(pair.second);
-			//	StaticShader::depth->setIndirectBufData(commands);
-
-			//	Renderer::updateShadowMap(scene->getMainLight());
-			//}
-
-			// -----------------
-
-			Renderer::setViewport(0, 0, App::get().getWindows()[0]->getWidth(), App::get().getWindows()[0]->getHeight());
 			Renderer::clear();
 
 			for (auto& pair : shaderToInstances)
@@ -208,7 +194,6 @@ namespace kuai {
 						// TODO: change this to a big texture array or something that doesn't send possibly duplicate materials
 						Rc<Mesh> mesh = model->getMeshes()[i];
 						Rc<Material> material = model->getMaterials()[i];
-
 						material->bind(0);
 					}
 				}
@@ -230,10 +215,12 @@ namespace kuai {
 					shader->getVertexArray()->getVertexBuffers()[1]->setData(modelMatrices.data(), modelMatrices.size() * sizeof(glm::mat4));
 				}
 
-				Renderer::render(shader);
+				Renderer::render(*shader);
 			}
 			dataChanged = false;
 		}
+
+		void renderCallback(RenderEvent& e) { render(); }
 
 	private:
 		// Maps shader to entities within its control
@@ -257,5 +244,78 @@ namespace kuai {
 		std::unordered_map<Shader*, std::unordered_map<u32, IndirectCommand>> shaderToMeshCommand;
 
 		bool dataChanged = false;
+	};
+
+	class LightSystem : public System
+	{
+	public:
+		void insertEntity(EntityID id) override
+		{
+			System::insertEntity(id);
+
+			int numLights = std::max((int)entities.size(), 10);
+			Shader::base->setUniform("Lights", "numLights", &numLights, sizeof(int));
+		}
+
+		void removeEntity(EntityID id) override
+		{
+			System::removeEntity(id);
+
+			int numLights = std::max((int)entities.size(), 10);
+			Shader::base->setUniform("Lights", "numLights", &numLights, sizeof(int));
+		}
+
+		void update(float dt)
+		{
+			u32 id = 0;
+			for (auto& entity : entities)
+			{
+				Light& l = entity.getComponent<Light>();
+
+				int type = (int)l.getType();
+				float intensity = l.getIntensity();
+				float linear = l.getLinear();
+				float quadratic = l.getQuadratic();
+				float cutoff = glm::cos(glm::radians(l.getAngle()));
+
+				Shader::base->setUniform("Lights", "lights[" + std::to_string(id) + "].type", &type, sizeof(int));
+
+				Shader::base->setUniform("Lights", "lights[" + std::to_string(id) + "].pos", &l.getTransform().getPos()[0], sizeof(glm::vec3));
+				Shader::base->setUniform("Lights", "lights[" + std::to_string(id) + "].dir", &l.getTransform().getForward()[0], sizeof(glm::vec3));
+				Shader::base->setUniform("Lights", "lights[" + std::to_string(id) + "].col", &l.getCol()[0], sizeof(glm::vec3));
+
+				Shader::base->setUniform("Lights", "lights[" + std::to_string(id) + "].intensity", &intensity, sizeof(float));
+				Shader::base->setUniform("Lights", "lights[" + std::to_string(id) + "].linear", &linear, sizeof(float));
+				Shader::base->setUniform("Lights", "lights[" + std::to_string(id) + "].quadratic", &quadratic, sizeof(float));
+				Shader::base->setUniform("Lights", "lights[" + std::to_string(id) + "].cutoff", &cutoff, sizeof(float));
+
+				id++;
+			}
+		}
+	};
+
+	class CameraSystem : public System
+	{
+	public:
+		void update(float dt)
+		{
+			for (auto& entity : entities)
+			{
+				Cam& cam = entity.getComponent<Cam>();
+				Renderer::setCamera(cam);
+
+				if (cam.getTarget())
+				{
+					cam.getTarget()->bind();
+					ECS->notifySystems(RenderEvent());
+					cam.getTarget()->unbind();
+					Renderer::setViewport(0, 0, App::get().getWindow()->getWidth(), App::get().getWindow()->getHeight());
+				}
+				else if (cam.isMain)
+				{
+					ECS->notifySystems(RenderEvent());
+				}
+			}
+		}
 	};
 }

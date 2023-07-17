@@ -8,7 +8,7 @@ namespace kuai {
 	Texture::Texture()
 	{
 		unsigned char data[] = { 0xFF, 0xFF, 0xFF };
-
+		
 		glGenTextures(1, &textureId);
 		glBindTexture(GL_TEXTURE_2D, textureId);
 
@@ -26,7 +26,6 @@ namespace kuai {
 		int width, height, colourChannels;
 		stbi_set_flip_vertically_on_load(true);
 		unsigned char* data = stbi_load(filename.c_str(), &width, &height, &colourChannels, 0);
-	
 		if (data)
 		{
 			GLenum format = 0;
@@ -64,12 +63,12 @@ namespace kuai {
 		glDeleteTextures(1, &textureId);
 	}
 
-	uint32_t Texture::getId()
+	u32 Texture::getId()
 	{
 		return textureId;
 	}
 
-	void Texture::bind(uint32_t activeTex)
+	void Texture::bind(u32 activeTex)
 	{
 		glActiveTexture(GL_TEXTURE0 + activeTex);
 		glBindTexture(GL_TEXTURE_2D, textureId);

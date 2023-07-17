@@ -39,7 +39,10 @@ namespace kuai {
 			for (auto const& pair : systems)
 			{
 				auto const& system = pair.second;
-				system->removeEntity(id);
+				if (system->hasEntity(id))
+				{
+					system->removeEntity(id);
+				}
 			}
 		}
 

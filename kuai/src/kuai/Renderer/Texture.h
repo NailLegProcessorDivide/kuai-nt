@@ -16,10 +16,10 @@ namespace kuai {
 		Texture(const std::string& filename);
 		~Texture();
 		/// @private
-		uint32_t getId();
+		u32 getId();
 		/// @private
-		void bind(uint32_t activeTex);
+		void bind(u32 activeTex);
 	private:
-		uint32_t textureId;
+		u32 textureId;
 	};
 }

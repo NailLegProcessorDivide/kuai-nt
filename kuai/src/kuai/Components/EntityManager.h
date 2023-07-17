@@ -3,11 +3,11 @@
 // @cond
 namespace kuai {
 
-	const uint32_t MAX_ENTITIES = 10000;
-	const uint32_t MAX_COMPONENTS = 32;
+	const u32 MAX_ENTITIES = 10000;
+	const u32 MAX_COMPONENTS = 32;
 
-	using EntityID = uint32_t;
-	using ComponentMask = uint32_t;
+	using EntityID = u32;
+	using ComponentMask = u32;
 
 	/**
 	* Manages creation and deletion of all entities (game objects)
@@ -59,7 +59,7 @@ namespace kuai {
 		// List of unused entity IDs
 		std::vector<EntityID> availableEntities;
 		// Number of entities currently in use
-		uint32_t entityNo = 0;
+		u32 entityNo = 0;
 
 		// Components associated with each entity
 		ComponentMask componentMasks[MAX_ENTITIES];

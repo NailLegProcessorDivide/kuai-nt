@@ -143,7 +143,7 @@ namespace kuai {
 		alCheck(alSource3f(sourceId, AL_GAIN, vel.x, vel.y, vel.z));
 	}
 
-	uint32_t AudioSource::getId()
+	u32 AudioSource::getId()
 	{
 		return sourceId;
 	}

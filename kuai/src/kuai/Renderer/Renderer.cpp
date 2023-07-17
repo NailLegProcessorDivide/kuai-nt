@@ -1,7 +1,7 @@
 #include "kpch.h"
 
 #include "Renderer.h"
-#include "StaticShader.h"
+#include "Shader.h"
 
 #include "glad/glad.h"
 
@@ -24,12 +24,12 @@ namespace kuai {
 
         glEnable(GL_FRAMEBUFFER_SRGB); // TODO: IMPLEMENT THIS MANUALLY IN SHADER AND TEXTURES
 
-        StaticShader::init();
+        Shader::init();
     }
 
     void Renderer::cleanup()
     {
-        StaticShader::cleanup();
+        Shader::cleanup();
     }
 
     void Renderer::setCamera(Camera& camera)
@@ -38,14 +38,14 @@ namespace kuai {
         renderData->viewMatrix = camera.getViewMatrix();
     }
 
-    void Renderer::render(Shader* shader)
+    void Renderer::render(Shader& shader)
     {
-        shader->bind();
+        shader.bind();
 
-        shader->setUniform("CamData", "projMatrix", &renderData->projMatrix, sizeof(glm::mat4));
-        shader->setUniform("CamData", "viewMatrix", &renderData->viewMatrix, sizeof(glm::mat4));
+        shader.setUniform("CamData", "projMatrix", &renderData->projMatrix, sizeof(glm::mat4));
+        shader.setUniform("CamData", "viewMatrix", &renderData->viewMatrix, sizeof(glm::mat4));
 
-        glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, shader->getCommandCount(), sizeof(IndirectCommand));
+        glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, (void*)0, shader.getCommandCount(), sizeof(IndirectCommand));
     }
 
     void Renderer::setViewport(u32 x, u32 y, u32 width, u32 height)

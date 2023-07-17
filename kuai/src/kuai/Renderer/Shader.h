@@ -32,6 +32,12 @@ namespace kuai {
 		void bind() const;
 		void unbind() const;
 
+	public:
+		static void init();
+		static void cleanup();
+
+		static Shader* base;
+
 	protected:
 		int createShader(const char* src, int type);
 		void link();

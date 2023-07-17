@@ -3,8 +3,11 @@
 #include "Log.h"
 
 #include "kuai/Renderer/Renderer.h"
+
 #include "kuai/Sound/AudioManager.h"
-#include "Systems.h"
+
+#include "kuai/Components/EntityComponentSystem.h"
+#include "kuai/Components/CoreSystems.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -26,6 +29,8 @@ namespace kuai {
 		running = true;
 
 		Renderer::init();
+		Renderer::setViewport(0, 0, getWindow()->getWidth(), getWindow()->getHeight());
+
 		AudioManager::init();
 
 		ECS = new EntityComponentSystem();
@@ -37,9 +42,17 @@ namespace kuai {
 		ECS->registerComponent<Listener>();
 		ECS->registerComponent<SoundSource>();
 
+		cameraSys = ECS->registerSystem<CameraSystem>();
+		cameraSys->acceptSubset(true);
+		ECS->setSystemMask<CameraSystem>(BIT(ECS->getComponentType<Cam>()));
+
 		renderSys = ECS->registerSystem<RenderSystem>();
 		renderSys->acceptSubset(true);
 		ECS->setSystemMask<RenderSystem>(BIT(ECS->getComponentType<MeshRenderer>()));
+
+		lightSys = ECS->registerSystem<LightSystem>();
+		lightSys->acceptSubset(true);
+		ECS->setSystemMask<LightSystem>(BIT(ECS->getComponentType<Light>()));
 
 		mainCam = makeBox<Entity>(ECS);
 		mainCam->addComponent<Cam>(
@@ -48,7 +61,7 @@ namespace kuai {
 			0.1f,
 			100.0f
 		);
-		Renderer::setCamera(mainCam->getComponent<Cam>());
+		mainCam->getComponent<Cam>().isMain = true;
 	}
 
 	App::~App() 
@@ -66,7 +79,9 @@ namespace kuai {
 			if (!minimised)
 			{
 				update(elapsedTime);
+				cameraSys->update(elapsedTime);
 				renderSys->update(elapsedTime);
+				lightSys->update(elapsedTime);
 			}
 			for (auto& window : windows)
 			{
@@ -89,7 +104,14 @@ namespace kuai {
 	{
 	}
 
-	void App::onEventP(Event* e)
+	void App::setMainCam(Entity& camEntity)
+	{
+		mainCam->getComponent<Cam>().isMain = false;
+		mainCam = makeBox<Entity>(camEntity);
+		mainCam->getComponent<Cam>().isMain = true;
+	}
+
+	void App::onEventP(Event& e)
 	{
 		EventDispatcher dispatcher(e);
 		dispatcher.dispatch<WindowCloseEvent>(BIND(&App::onWindowClose));
@@ -126,6 +148,23 @@ namespace kuai {
 			}
 		}
 		return windows[0].get();
+	}
+
+	std::optional<Entity> App::getEntityById(EntityID id)
+	{
+		if (ECS->hasComponent<Transform>(id)) // Every entity has a transform
+		{
+			return Entity(ECS, id);
+		}
+		return {};
+	}
+
+	void App::destroyEntity(Entity entity)
+	{
+		if (ECS->hasComponent<Transform>(entity.getId()))
+		{
+			ECS->destroyEntity(entity.getId());
+		}
 	}
 
 }

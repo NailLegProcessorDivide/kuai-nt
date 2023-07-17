@@ -13,11 +13,11 @@ namespace kuai {
 		Cubemap(const std::vector<std::string>& faces);
 		~Cubemap();
 
-		uint32_t getId();
+		u32 getId();
 		/// @private
-		void bind(uint32_t activeTex);
+		void bind(u32 activeTex);
 	private:
-		uint32_t textureId;
+		u32 textureId;
 	};
 
 }

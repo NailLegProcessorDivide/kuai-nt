@@ -6,8 +6,8 @@ namespace kuai {
 	// Forward Declaration
 	class AudioClip;
 
-	const uint32_t BUF_COUNT = 4;
-	const uint32_t BUF_SIZE = 32768;
+	const u32 BUF_COUNT = 4;
+	const u32 BUF_SIZE = 32768;
 
     class AudioSource
     {
@@ -50,15 +50,15 @@ namespace kuai {
 		void setDir(const glm::vec3& dir);
 		void setVel(const glm::vec3& vel);
 
-		uint32_t getId();
+		u32 getId();
 
 	protected:
 		Rc<AudioClip> audioClip = nullptr;
 		bool loop = false;
 
-		uint32_t sourceId = 0;
+		u32 sourceId = 0;
 		
-		uint32_t buffers[BUF_COUNT];
+		u32 buffers[BUF_COUNT];
 
 		friend class AudioManager;
 		friend class SoundSource;
