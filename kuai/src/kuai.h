@@ -17,6 +17,7 @@
 #include "kuai/Renderer/Shader.h"
 #include "kuai/Renderer/Texture.h"
 #include "kuai/Renderer/Cubemap.h"
+#include "kuai/Renderer/Geometry.h"
 #include "kuai/Renderer/Material.h"
 #include "kuai/Renderer/Mesh.h"
 #include "kuai/Renderer/Model.h"

@@ -3,6 +3,7 @@
 #include "Log.h"
 
 #include "kuai/Renderer/Renderer.h"
+#include "kuai/Renderer/Geometry.h"
 
 #include "kuai/Sound/AudioManager.h"
 
@@ -30,6 +31,8 @@ namespace kuai {
 
 		Renderer::init();
 		Renderer::setViewport(0, 0, getWindow()->getWidth(), getWindow()->getHeight());
+
+		Geometry::init();
 
 		AudioManager::init();
 

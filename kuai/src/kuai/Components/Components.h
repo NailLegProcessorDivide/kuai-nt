@@ -43,7 +43,10 @@ namespace kuai {
 
 	class Name : public Component
 	{
+	public:
+		Name(const std::string& name) : name(name) {}
 
+		std::string name;
 	};
 
 	/** \class Transform
@@ -162,13 +165,11 @@ namespace kuai {
 	class SpriteRenderer : public Component
 	{
 	public:
-		SpriteRenderer()
-		{
+		SpriteRenderer() = default;
 
-		}
-
+		
 	private:
-
+		Rc<Texture> texture;
 	};
 
 	/** \class Camera

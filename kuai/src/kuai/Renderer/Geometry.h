@@ -1,27 +1,46 @@
 #pragma once
 
-static float[] quadPositions = 
+#include "Model.h"
+
+static const std::vector<float> quadPositions =
 {
 	-0.5f, -0.5f, 0.0f,
 	0.5f, -0.5f, 0.0f,
 	0.5f, 0.5f, 0.0f,
-	-0.5f, 0.5f, 0.0f,
+	-0.5f, 0.5f, 0.0f
 };
 
-static float[] quadTexCoords = 
+static const std::vector<float> quadNormals =
 {
-	0, 1,
-	1, 1,
-	1, 0,
-	0, 0
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f,
+	0.0f, 0.0f, 1.0f
 };
 
-static int[] quadIndices = { 0, 1, 2, 2, 3, 0, };
+static const std::vector<float> quadTexCoords =
+{
+	0.0f, 1.0f,
+	1.0f, 1.0f,
+	1.0f, 0.0f,
+	0.0f, 0.0f
+};
+
+static const std::vector<uint32_t> quadIndices =
+{ 
+	0, 1, 2, 
+	2, 3, 0
+};
 
 namespace kuai {
 	class Geometry
 	{
 	public:
+		static Rc<Model> quad;
 
+	private:
+		static void init();
+
+		friend class App;
 	};
 }

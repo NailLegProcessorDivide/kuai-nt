@@ -52,6 +52,7 @@ add_library(${PROJECT_NAME}
     src/kuai/Renderer/Framebuffer.h
     src/kuai/Renderer/Framebuffer.cpp
     src/kuai/Renderer/Geometry.h
+    src/kuai/Renderer/Geometry.cpp
     src/kuai/Renderer/Material.h
     
     src/kuai/Renderer/Mesh.h
