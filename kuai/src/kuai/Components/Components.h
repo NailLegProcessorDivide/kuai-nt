@@ -141,7 +141,6 @@ namespace kuai {
 	class MeshRenderer : public Component
 	{
 	public:
-		MeshRenderer() = default;
 		MeshRenderer(Rc<Model> model) : model(model) {}
 		MeshRenderer(Rc<Mesh> mesh) : model(makeRc<Model>(mesh)) {}
 
@@ -153,23 +152,26 @@ namespace kuai {
 		Rc<Model> getModel() { return model; }
 		void setModel(Rc<Model> model) { this->model = model; }
 
-		bool castsShadows() { return shadows; }
-		void setShadows(bool shadows) { this->shadows = shadows; }
-
 	private:
 		Rc<Model> model;
-
-		bool shadows = true;
 	};
 
 	class SpriteRenderer : public Component
 	{
 	public:
 		SpriteRenderer() = default;
+		SpriteRenderer(Rc<Texture> texture) : texture(texture) {}
 
-		
+		Rc<Texture> getTexture() { return texture; }
+		void setTexture(Rc<Texture> texture) { this->texture = texture; }
+
+		float getTilingFactor() { return tilingFactor; }
+		void setTilingFactor(float factor) { tilingFactor = factor; }
+
 	private:
 		Rc<Texture> texture;
+
+		float tilingFactor = 1.0f;
 	};
 
 	/** \class Camera

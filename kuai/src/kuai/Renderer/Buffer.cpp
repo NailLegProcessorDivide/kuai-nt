@@ -70,7 +70,7 @@ namespace kuai {
 
 	// Index Buffer ***********************************************************
 
-	IndexBuffer::IndexBuffer(u32* indices, u32 count) : count(count)
+	IndexBuffer::IndexBuffer(const u32* indices, u32 count) : count(count)
 	{
 		glCreateBuffers(1, &bufId);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bufId);
@@ -144,7 +144,7 @@ namespace kuai {
 		return vertexBufs;
 	}
 
-	void VertexArray::addVertexBuffer(const Rc<VertexBuffer>& buf)
+	void VertexArray::addVertexBuffer(Rc<VertexBuffer> buf)
 	{
 		KU_CORE_ASSERT(buf->getLayout().getElements().size(), "Vertex buffer has no layout.");
 
@@ -165,10 +165,12 @@ namespace kuai {
 						GL_INT,
 						layout.getStride(),
 						(const void*)element.offset);
+					glVertexAttribDivisor(index, 1); // Tells vertex attribute to increment once per instance instead of per vertex
 					index++;
 					break;
 				}
 				case ShaderDataType::FLOAT:
+					glVertexAttribDivisor(index, 1);
 				case ShaderDataType::VEC2:
 				case ShaderDataType::VEC3:
 				case ShaderDataType::VEC4:
@@ -201,7 +203,7 @@ namespace kuai {
 							layout.getStride(),
 							(const void*)(element.offset + sizeof(float) * count * i)
 						);
-						glVertexAttribDivisor(index, 1); // Tells vertex attribute to increment once per instance instead of per vertex
+						glVertexAttribDivisor(index, 1);
 						index++;
 					}
 				}
@@ -211,12 +213,12 @@ namespace kuai {
 		vertexBufs.push_back(buf);
 	}
 
-	const Rc<IndexBuffer>& VertexArray::getIndexBuffer() const
+	Rc<IndexBuffer> VertexArray::getIndexBuffer() const
 	{
 		return indexBuf;
 	}
 
-	void VertexArray::setIndexBuffer(const Rc<IndexBuffer>& buf)
+	void VertexArray::setIndexBuffer(Rc<IndexBuffer> buf)
 	{
 		glBindVertexArray(vaoId);
 		buf->bind();

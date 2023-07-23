@@ -26,19 +26,31 @@ namespace kuai {
 		int width, height, colourChannels;
 		stbi_set_flip_vertically_on_load(true);
 		unsigned char* data = stbi_load(filename.c_str(), &width, &height, &colourChannels, 0);
+		this->width = width;
+		this->height = height;
 		if (data)
 		{
 			GLenum format = 0;
 			if (colourChannels == 1)
+			{
 				format = GL_RED;
+			}
 			else if (colourChannels == 3)
+			{
 				format = GL_RGB;
+				this->format = TextureFormat::RGB;
+				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+			}
 			else if (colourChannels == 4)
+			{
 				format = GL_RGBA;
+				this->format = TextureFormat::RGBA;
+				glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+			}
 
 			KU_CORE_ASSERT(format, "Texture file format not supported");
 
-			glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 
 			// Set texture wrapping options

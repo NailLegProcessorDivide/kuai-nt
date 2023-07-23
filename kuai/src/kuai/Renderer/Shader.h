@@ -37,6 +37,7 @@ namespace kuai {
 		static void cleanup();
 
 		static Shader* base;
+		static Shader* sprite;
 
 	protected:
 		int createShader(const char* src, int type);

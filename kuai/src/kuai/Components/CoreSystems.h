@@ -2,6 +2,8 @@
 
 #include "System.h"
 
+#include "kuai/Renderer/TextureArray.h"
+
 namespace kuai {
 
 	class RenderEvent : public Event
@@ -76,11 +78,6 @@ namespace kuai {
 				shaderToInstances[shader]++;
 			}
 
-			// Resize model matrices and set commands
-			for (auto& pair : shaderToInstances)
-			{
-				pair.first->getVertexArray()->getVertexBuffers()[1]->reset(nullptr, pair.second * sizeof(glm::mat4), DrawHint::DYNAMIC);
-			}
 			setCommands();
 		}
 
@@ -149,11 +146,6 @@ namespace kuai {
 				shaderToInstances[shader]--;
 			}
 
-			// Resize model matrices and set commands
-			for (auto& pair : shaderToInstances)
-			{
-				pair.first->getVertexArray()->getVertexBuffers()[1]->reset(nullptr, pair.second * sizeof(glm::mat4), DrawHint::DYNAMIC);
-			}
 			setCommands();
 
 			System::removeEntity(id);
@@ -161,6 +153,12 @@ namespace kuai {
 
 		void setCommands()
 		{
+			// Resize model matrices
+			for (auto& pair : shaderToInstances)
+			{
+				pair.first->getVertexArray()->getVertexBuffers()[1]->reset(nullptr, pair.second * sizeof(glm::mat4), DrawHint::DYNAMIC);
+			}
+
 			int i = 0;
 			for (auto& pair : shaderToMeshCommand)
 			{
@@ -197,8 +195,6 @@ namespace kuai {
 						material->bind(0);
 					}
 				}
-
-			RENDER_LABEL:
 
 				if (dataChanged)
 				{
@@ -244,6 +240,86 @@ namespace kuai {
 		std::unordered_map<Shader*, std::unordered_map<u32, IndirectCommand>> shaderToMeshCommand;
 
 		bool dataChanged = false;
+	};
+
+
+
+	class SpriteRenderSystem : public System
+	{
+	public:
+		void init()
+		{
+			Shader::sprite->getVertexArray()->getVertexBuffers()[0]->reset(quadVertexData.data(), quadVertexData.size() * sizeof(Vertex), DrawHint::STATIC);
+
+			Shader::sprite->getVertexArray()->setIndexBuffer(makeRc<IndexBuffer>(quadIndices.data(), quadIndices.size()));
+
+			texArray = makeBox<TextureArray>(256, 256, 128);
+
+			ECS->subscribeSystem(this, &SpriteRenderSystem::renderCallback);
+		}
+
+		void insertEntity(EntityID id) override
+		{
+			System::insertEntity(id);
+
+			cmd.instanceCount++;
+
+			texArray->insert(ECS->getComponent<SpriteRenderer>(id).getTexture());
+
+			setCommand();
+		}
+
+		void removeEntity(EntityID id) override
+		{
+			System::removeEntity(id);
+
+			cmd.instanceCount--;
+
+			texArray->remove(ECS->getComponent<SpriteRenderer>(id).getTexture());
+
+			setCommand();
+		}
+
+		void setCommand()
+		{
+			Shader::sprite->getVertexArray()->getVertexBuffers()[1]->reset(nullptr, cmd.instanceCount * sizeof(float) * 2, DrawHint::DYNAMIC);
+			Shader::sprite->getVertexArray()->getVertexBuffers()[2]->reset(nullptr, cmd.instanceCount * sizeof(glm::mat4), DrawHint::DYNAMIC);
+
+			Shader::sprite->setIndirectBufData({ cmd });
+		}
+
+		void update(float dt)
+		{
+			texData.clear();
+			modelMatrices.clear();
+			for (auto& entity : entities)
+			{
+				SpriteRenderer& sr = entity.getComponent<SpriteRenderer>();
+
+				texData.push_back(sr.getTexture()->getId());
+				texData.push_back(sr.getTilingFactor());
+				modelMatrices.push_back(entity.getTransform().getModelMatrix());
+			}
+
+			Shader::sprite->getVertexArray()->getVertexBuffers()[1]->setData(texData.data(), texData.size() * sizeof(float));
+			Shader::sprite->getVertexArray()->getVertexBuffers()[2]->setData(modelMatrices.data(), modelMatrices.size() * sizeof(glm::mat4));
+		}
+
+		void render()
+		{
+			texArray->bind(0);
+			Renderer::render(*Shader::sprite);
+		}
+
+		void renderCallback(RenderEvent& e) { render(); }
+
+	private:
+		Box<TextureArray> texArray;
+
+		std::vector<glm::mat4> modelMatrices;
+		std::vector<float> texData;
+
+		IndirectCommand cmd = { 6, 0, 0, 0, 0 };
 	};
 
 	class LightSystem : public System

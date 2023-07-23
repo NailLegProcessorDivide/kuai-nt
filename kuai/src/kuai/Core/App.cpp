@@ -42,6 +42,7 @@ namespace kuai {
 		ECS->registerComponent<Cam>();
 		ECS->registerComponent<Light>();
 		ECS->registerComponent<MeshRenderer>();
+		ECS->registerComponent<SpriteRenderer>();
 		ECS->registerComponent<Listener>();
 		ECS->registerComponent<SoundSource>();
 
@@ -52,6 +53,10 @@ namespace kuai {
 		renderSys = ECS->registerSystem<RenderSystem>();
 		renderSys->acceptSubset(true);
 		ECS->setSystemMask<RenderSystem>(BIT(ECS->getComponentType<MeshRenderer>()));
+
+		spriteSys = ECS->registerSystem<SpriteRenderSystem>();
+		spriteSys->acceptSubset(true);
+		ECS->setSystemMask<SpriteRenderSystem>(BIT(ECS->getComponentType<SpriteRenderer>()));
 
 		lightSys = ECS->registerSystem<LightSystem>();
 		lightSys->acceptSubset(true);
@@ -84,6 +89,7 @@ namespace kuai {
 				update(elapsedTime);
 				cameraSys->update(elapsedTime);
 				renderSys->update(elapsedTime);
+				spriteSys->update(elapsedTime);
 				lightSys->update(elapsedTime);
 			}
 			for (auto& window : windows)

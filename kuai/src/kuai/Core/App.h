@@ -85,6 +85,7 @@ namespace kuai {
 
 		Rc<System> cameraSys;
 		Rc<System> renderSys;
+		Rc<System> spriteSys;
 		Rc<System> lightSys;
 
 		Box<Entity> mainCam;

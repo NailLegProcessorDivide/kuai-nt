@@ -6,6 +6,11 @@ namespace kuai {
 	*/
 	class Texture {
 	public:
+		enum class TextureFormat
+		{
+			RGB = 0,
+			RGBA = 1
+		};
 		/**
 		* Creates default blank texture.
 		*/
@@ -19,7 +24,15 @@ namespace kuai {
 		u32 getId();
 		/// @private
 		void bind(u32 activeTex);
+
+		u32 getWidth() const { return width; }
+		u32 getHeight() const { return height; }
+
 	private:
 		u32 textureId;
+
+		u32 width = 1;
+		u32 height = 1;
+		TextureFormat format = TextureFormat::RGB;
 	};
 }

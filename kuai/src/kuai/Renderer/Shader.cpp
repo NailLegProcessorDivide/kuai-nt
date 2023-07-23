@@ -5,6 +5,7 @@
 
 namespace kuai {
 	Shader* Shader::base = nullptr;
+	Shader* Shader::sprite = nullptr;
 
 	std::unordered_map<std::string, u32> Shader::ubos = std::unordered_map<std::string, u32>();
 	std::unordered_map<std::string, u32> Shader::uboOffsets = std::unordered_map<std::string, u32>();
@@ -141,7 +142,6 @@ namespace kuai {
 		base = new Shader(
 		R"(
 		#version 450
-		#define MAX_LIGHTS 10
 
 		layout (location = 0)	in vec3 aPos;
 		layout (location = 1)	in vec3 aNormal;
@@ -152,13 +152,11 @@ namespace kuai {
 		{
 			mat4 projMatrix;
 			mat4 viewMatrix;
-			vec3 viewPos;
 		};
 
 		out vec4 worldPos;
 		out vec3 worldNorm;
 		out vec2 texCoords;
-		out vec3 viewingPos;
 
 		void main()
 		{
@@ -166,95 +164,137 @@ namespace kuai {
 			mat3 model3x3InvTransp = mat3(transpose(inverse(aModelMatrix)));
 			worldNorm = model3x3InvTransp * aNormal;
 			texCoords = aTexCoord;
-			viewingPos = viewPos;
 
 			gl_Position = projMatrix * viewMatrix * worldPos;
 		}
 		)",
 		R"(
 		#version 450
-		#define MAX_LIGHTS 10
 
 		in vec4 worldPos;
 		in vec3 worldNorm;
 		in vec2 texCoords;
-		in vec3 viewingPos;
-
-		struct Light
-		{
-			int type;
-
-			vec3 pos;
-			vec3 dir;
-			vec3 col;
-    
-			float intensity;
-			float linear;
-			float quadratic;
-			float cutoff;
-		};
-
-		uniform sampler2D diffuse;
-
-		layout (binding = 1) uniform Lights
-		{
-			Light lights[MAX_LIGHTS];
-			int numLights;
-		};
 
 		out vec4 fragCol;
 
 		void main()
 		{
-			fragCol = texture(diffuse, texCoords);
+			fragCol = vec4(1.0);
 		}
 		)");
 
-		Rc<VertexBuffer> vbo1 = makeRc<VertexBuffer>(0);
-		Rc<VertexBuffer> vbo2 = makeRc<VertexBuffer>(0);
+		Rc<VertexBuffer> baseVbo1 = makeRc<VertexBuffer>(0);
+		Rc<VertexBuffer> baseVbo2 = makeRc<VertexBuffer>(0);
 
-		vbo1->setLayout(
+		baseVbo1->setLayout(
 			{
 				{ ShaderDataType::VEC3, "pos" },
 				{ ShaderDataType::VEC3, "normal" },
 				{ ShaderDataType::VEC2, "texCoord" }
 			});
-		vbo2->setLayout(
+		baseVbo2->setLayout(
 			{
 				{ ShaderDataType::MAT4,  "modelMatrix" }
 			});
-		base->vao->addVertexBuffer(vbo1);
-		base->vao->addVertexBuffer(vbo2);
+		base->vao->addVertexBuffer(baseVbo1);
+		base->vao->addVertexBuffer(baseVbo2);
 
 		base->bind();
 
-		base->createUniformBlock("CamData", { "projMatrix", "viewMatrix", "viewPos" }, 0);
+		base->createUniformBlock("CamData", { "projMatrix", "viewMatrix" }, 0);
 
-		std::vector<std::string> lightNames;
-		std::vector<const char*> lightNamesCStr;
-		for (u8 i = 0; i < 10; i++)	// TODO: HORRIBLE DISGUSTING CODE
+		sprite = new Shader(
+		R"(
+		#version 450
+
+		layout (location = 0) in vec3	aPos;
+		layout (location = 1) in vec3	aNormal;
+		layout (location = 2) in vec2	aTexCoord;
+		layout (location = 3) in float	aTexIndex;
+		layout (location = 4) in float	aTiling;
+		layout (location = 5) in mat4	aModelMatrix;
+
+		layout (binding = 0) uniform CamData
 		{
-			lightNames.push_back("lights[" + std::to_string(i) + "].type");
-			lightNames.push_back("lights[" + std::to_string(i) + "].pos");
-			lightNames.push_back("lights[" + std::to_string(i) + "].dir");
-			lightNames.push_back("lights[" + std::to_string(i) + "].col");
-			lightNames.push_back("lights[" + std::to_string(i) + "].intensity");
-			lightNames.push_back("lights[" + std::to_string(i) + "].linear");
-			lightNames.push_back("lights[" + std::to_string(i) + "].quadratic");
-			lightNames.push_back("lights[" + std::to_string(i) + "].cutoff");
-		}
-		for (auto& name : lightNames)
-			lightNamesCStr.push_back(name.c_str());
-		lightNamesCStr.push_back("numLights");
-		base->createUniformBlock("Lights", lightNamesCStr, 1);
+			mat4 projMatrix;
+			mat4 viewMatrix;
+		};
 
-		base->createUniform("diffuse");
-		base->setUniform("diffuse", 0);
+		out vec4 worldPos;
+		out vec3 worldNorm;
+		out vec2 texCoords;
+
+		out flat float texIndex;
+		out flat float tiling;
+
+		void main()
+		{
+			worldPos = aModelMatrix * vec4(aPos, 1.0);
+			mat3 model3x3InvTransp = mat3(transpose(inverse(aModelMatrix)));
+			worldNorm = model3x3InvTransp * aNormal;
+			texCoords = aTexCoord;
+
+			texIndex = aTexIndex;
+			tiling = aTiling;
+
+			gl_Position = projMatrix * viewMatrix * worldPos;
+		}
+		)",
+		R"(
+		#version 450
+
+		in vec4 worldPos;
+		in vec3 worldNorm;
+		in vec2 texCoords;
+
+		in flat float texIndex;
+		in flat float tiling;
+
+		uniform sampler2DArray sprites;
+
+		out vec4 fragCol;
+
+		void main()
+		{
+			fragCol = texture(sprites, vec3(texCoords * tiling, int(texIndex)));
+		}
+		)"
+		);
+
+		Rc<VertexBuffer> spriteVbo1 = makeRc<VertexBuffer>(0);
+		Rc<VertexBuffer> spriteVbo2 = makeRc<VertexBuffer>(0);
+		Rc<VertexBuffer> spriteVbo3 = makeRc<VertexBuffer>(0);
+
+		spriteVbo1->setLayout(
+		{
+			{ ShaderDataType::VEC3,  "pos" },
+			{ ShaderDataType::VEC3,  "normal" },
+			{ ShaderDataType::VEC2,  "texCoord" },
+		});
+		spriteVbo2->setLayout(
+		{
+			{ ShaderDataType::FLOAT, "texIndex" },
+			{ ShaderDataType::FLOAT, "tiling" }
+		});
+		spriteVbo3->setLayout(
+		{
+			{ ShaderDataType::MAT4,  "modelMatrix" }
+		});
+
+		sprite->vao->addVertexBuffer(spriteVbo1);
+		sprite->vao->addVertexBuffer(spriteVbo2);
+		sprite->vao->addVertexBuffer(spriteVbo3);
+
+		sprite->bind();
+
+		sprite->createUniform("sprites");
+		sprite->setUniform("sprites", 0);
 	}
 
 	void Shader::cleanup()
 	{
 		delete base;
+		delete sprite;
 	}
 
 	int Shader::createShader(const char* src, int type)

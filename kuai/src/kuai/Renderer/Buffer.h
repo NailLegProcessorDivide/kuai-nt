@@ -119,7 +119,7 @@ namespace kuai {
     class IndexBuffer
     {
     public:
-        IndexBuffer(u32* indices, u32 count);
+        IndexBuffer(const u32* indices, u32 count);
         ~IndexBuffer();
 
         void bind() const;
@@ -167,10 +167,10 @@ namespace kuai {
         void unbind() const;
 
         const std::vector<Rc<VertexBuffer>>& getVertexBuffers() const;
-        void addVertexBuffer(const Rc<VertexBuffer>& buf);
+        void addVertexBuffer(Rc<VertexBuffer> buf);
 
-        const Rc<IndexBuffer>& getIndexBuffer() const;
-        void setIndexBuffer(const Rc<IndexBuffer>& buf);
+        Rc<IndexBuffer> getIndexBuffer() const;
+        void setIndexBuffer(Rc<IndexBuffer> buf);
 
     private:
         std::vector<Rc<VertexBuffer>> vertexBufs;
